@@ -1214,7 +1214,7 @@ export function NouveauProjet() {
                     value={newCondition}
                     onChange={(e) => setNewCondition(e.target.value)}
                     placeholder="Ajouter une condition..."
-                    onKeyPress={(e) => e.key === 'Enter' && addCondition()}
+                    onKeyDown={(e) => e.key === 'Enter' && addCondition()}
                   />
                   <Button onClick={addCondition}>
                     <Plus className="w-4 h-4" />
