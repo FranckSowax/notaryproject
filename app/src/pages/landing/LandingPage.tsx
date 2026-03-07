@@ -19,6 +19,8 @@ import {
   ZoomIn,
   User,
   Upload,
+  CircleAlert,
+  Briefcase,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,6 +57,60 @@ function getThemeColors(projet: any): { primary: string; secondary: string } {
   };
 }
 
+const SITUATIONS_MATRIMONIALES = [
+  { value: 'celibataire', label: 'Celibataire' },
+  { value: 'marie', label: 'Marie(e)' },
+  { value: 'union_libre', label: 'Union libre' },
+  { value: 'divorce', label: 'Divorce(e)' },
+  { value: 'veuf', label: 'Veuf/Veuve' },
+] as const;
+
+const CATEGORIES_SOCIOPRO = [
+  { value: 'fonctionnaire', label: 'Fonctionnaire' },
+  { value: 'salarie_prive', label: 'Salarie du prive' },
+  { value: 'commercant', label: 'Commercant / Entrepreneur' },
+  { value: 'profession_liberale', label: 'Profession liberale' },
+  { value: 'retraite', label: 'Retraite(e)' },
+  { value: 'etudiant', label: 'Etudiant(e)' },
+  { value: 'sans_emploi', label: 'Sans emploi' },
+  { value: 'autre', label: 'Autre' },
+] as const;
+
+const TRANCHES_REVENUS = [
+  { value: '0-300000', label: 'Moins de 300 000 FCFA' },
+  { value: '300000-500000', label: '300 000 - 500 000 FCFA' },
+  { value: '500000-1000000', label: '500 000 - 1 000 000 FCFA' },
+  { value: '1000000-1500000', label: '1 000 000 - 1 500 000 FCFA' },
+  { value: '1500000+', label: 'Plus de 1 500 000 FCFA' },
+] as const;
+
+// Documents de base toujours requis
+const DOCUMENTS_BASE = [
+  { id: 'acte_naissance', nom: 'Acte de naissance legalise', obligatoire: true },
+  { id: 'piece_identite', nom: "Piece d'identite (CNI ou Passeport)", obligatoire: true },
+];
+
+// Documents conditionnels selon la situation matrimoniale
+function getDocumentsParSituation(situation: string) {
+  const docs = [...DOCUMENTS_BASE];
+
+  if (situation === 'marie' || situation === 'union_libre') {
+    docs.push({ id: 'acte_mariage', nom: 'Acte de mariage', obligatoire: true });
+    docs.push({ id: 'livret_famille', nom: 'Livret de famille', obligatoire: true });
+  }
+
+  if (situation === 'divorce') {
+    docs.push({ id: 'jugement_divorce', nom: 'Jugement de divorce', obligatoire: true });
+  }
+
+  if (situation === 'veuf') {
+    docs.push({ id: 'acte_deces', nom: 'Acte de deces du conjoint', obligatoire: true });
+    docs.push({ id: 'livret_famille', nom: 'Livret de famille', obligatoire: false });
+  }
+
+  return docs;
+}
+
 export function LandingPage() {
   const { slug } = useParams<{ slug: string }>();
   const { projet, loading: projetLoading } = useProjetBySlug(slug || '');
@@ -72,26 +128,32 @@ export function LandingPage() {
   // Lightbox galerie
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
-  // Formulaire candidature
+  // Formulaire candidature - 3 etapes
   const [formOpen, setFormOpen] = useState(false);
   const [formStep, setFormStep] = useState(1);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
+    // Etape 1 - Informations personnelles
     nom: '',
     prenom: '',
-    email: '',
-    telephone: '',
     date_naissance: '',
     lieu_naissance: '',
-    nationalite: '',
-    situation_familiale: 'celibataire',
+    nationalite: 'Gabonaise',
+    situation_familiale: '',
+    email: '',
+    telephone: '',
+    whatsapp: '',
     adresse: '',
     ville: '',
     code_postal: '',
+    // Etape 2 - Situation professionnelle
     profession: '',
     employeur: '',
-    revenus_mensuels: '',
+    categorie_sociopro: '',
+    tranche_revenus: '',
     type_contrat: 'cdi',
     anciennete_emploi: '',
+    revenus_mensuels: '',
     apport_personnel: '',
     montant_pret_sollicite: '',
     duree_pret: '',
@@ -124,7 +186,7 @@ export function LandingPage() {
 
     if (lowerMessage.includes('document') || lowerMessage.includes('piece')) {
       const docs = (projet as any).documents_requis?.map((d: DocumentRequis) => d.nom).join(', ');
-      response = `Les documents requis sont : ${docs || 'Piece d\'identite, justificatif de domicile, bulletins de salaire, avis d\'imposition'}`;
+      response = `Les documents requis sont : ${docs || 'Acte de naissance legalise, piece d\'identite, acte de mariage (si concerne), livret de famille (si necessaire)'}`;
     } else if (lowerMessage.includes('prix') || lowerMessage.includes('cout')) {
       response = `Le prix de ce bien est de ${projet.prix ? formatFCFA(projet.prix) : 'non renseigne'}.`;
     } else if (lowerMessage.includes('surface') || lowerMessage.includes('m2')) {
@@ -156,6 +218,49 @@ export function LandingPage() {
     } as any);
   };
 
+  const updateField = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Effacer l'erreur quand on modifie le champ
+    if (formErrors[field]) {
+      setFormErrors(prev => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
+  const validateStep = (step: number): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (step === 1) {
+      if (!formData.nom.trim()) errors.nom = 'Le nom est requis';
+      if (!formData.prenom.trim()) errors.prenom = 'Le prenom est requis';
+      if (!formData.date_naissance) errors.date_naissance = 'La date de naissance est requise';
+      if (!formData.lieu_naissance.trim()) errors.lieu_naissance = 'Le lieu de naissance est requis';
+      if (!formData.situation_familiale) errors.situation_familiale = 'La situation matrimoniale est requise';
+      if (!formData.email.trim()) errors.email = "L'email est requis";
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = "L'email n'est pas valide";
+      if (!formData.telephone.trim()) errors.telephone = 'Le telephone est requis';
+      else if (!/^(?:[+\d\s().-]){8,}$/.test(formData.telephone)) errors.telephone = 'Numero de telephone invalide';
+    }
+
+    if (step === 2) {
+      if (!formData.profession.trim()) errors.profession = 'La profession est requise';
+      if (!formData.categorie_sociopro) errors.categorie_sociopro = 'La categorie est requise';
+      if (!formData.tranche_revenus) errors.tranche_revenus = 'La tranche de revenus est requise';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleNextStep = () => {
+    if (validateStep(formStep)) {
+      setFormStep(prev => prev + 1);
+    }
+  };
+
   const handleFormSubmit = async () => {
     if (!projet) return;
 
@@ -181,6 +286,15 @@ export function LandingPage() {
         }
       }
 
+      // Extraire le montant moyen de la tranche de revenus pour revenus_mensuels
+      const revenusMap: Record<string, number> = {
+        '0-300000': 150000,
+        '300000-500000': 400000,
+        '500000-1000000': 750000,
+        '1000000-1500000': 1250000,
+        '1500000+': 2000000,
+      };
+
       const candidatData = {
         projet_id: projet.id,
         nom: formData.nom,
@@ -196,7 +310,7 @@ export function LandingPage() {
         code_postal: formData.code_postal,
         profession: formData.profession,
         employeur: formData.employeur,
-        revenus_mensuels: parseFloat(formData.revenus_mensuels) || 0,
+        revenus_mensuels: revenusMap[formData.tranche_revenus] || parseFloat(formData.revenus_mensuels) || 0,
         type_contrat: formData.type_contrat as any,
         anciennete_emploi: formData.anciennete_emploi,
         apport_personnel: parseFloat(formData.apport_personnel) || 0,
@@ -205,6 +319,7 @@ export function LandingPage() {
         banque_actuelle: formData.banque_actuelle,
         documents: documentsFournis,
         statut: 'nouveau' as const,
+        notes: `Categorie socio-pro: ${formData.categorie_sociopro} | Tranche revenus: ${formData.tranche_revenus}${formData.whatsapp ? ' | WhatsApp: ' + formData.whatsapp : ''}`,
       };
       await createCandidat(candidatData);
       setSubmitSuccess(true);
@@ -249,6 +364,18 @@ export function LandingPage() {
   // Conditions d'eligibilite
   const conditionsElig: string[] = p.conditions_eligibilite || [];
 
+  // Documents conditionnels pour l'etape 3 du formulaire
+  const documentsFormulaire = getDocumentsParSituation(formData.situation_familiale);
+
+  // Composant champ avec erreur
+  const FieldError = ({ field }: { field: string }) =>
+    formErrors[field] ? (
+      <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+        <CircleAlert className="w-3 h-3" />
+        {formErrors[field]}
+      </p>
+    ) : null;
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* ========== HEADER FIXE ========== */}
@@ -287,13 +414,12 @@ export function LandingPage() {
         </div>
       </header>
 
-      {/* ========== HERO SECTION (style Bolokoboue) ========== */}
+      {/* ========== HERO SECTION ========== */}
       <section className="relative pt-32 pb-20 px-4 sm:px-6 overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl -z-10" style={{ backgroundColor: `${colors.primary}15` }} />
         <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full blur-3xl -z-10" style={{ backgroundColor: `${colors.secondary}15` }} />
 
         <div className="container mx-auto max-w-7xl">
-          {/* Description box */}
           {projet.description && (
             <div className="mb-12 border rounded-2xl p-6 max-w-4xl" style={{ background: `linear-gradient(135deg, ${colors.primary}05, ${colors.secondary}08)`, borderColor: `${colors.primary}20` }}>
               <div className="flex items-start gap-4">
@@ -360,7 +486,6 @@ export function LandingPage() {
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
               </div>
-              {/* Floating badge */}
               <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-4 border border-slate-100">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${colors.primary}15` }}>
@@ -438,7 +563,6 @@ export function LandingPage() {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
-            {/* Fiche technique */}
             <Card className="overflow-hidden border-slate-200 shadow-lg">
               {projet.banner_image && (
                 <div className="relative h-64">
@@ -498,7 +622,6 @@ export function LandingPage() {
               </CardContent>
             </Card>
 
-            {/* Conditions + Documents */}
             <div className="space-y-8">
               {conditionsElig.length > 0 && (
                 <div className="rounded-3xl p-8 border" style={{ background: `linear-gradient(135deg, ${colors.primary}08, ${colors.secondary}05)`, borderColor: `${colors.primary}20` }}>
@@ -516,44 +639,50 @@ export function LandingPage() {
                 </div>
               )}
 
-              {docsRequis.length > 0 && (
-                <Card className="shadow-lg border-slate-200">
-                  <CardContent className="p-8">
-                    <h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3">
-                      <FileText className="w-6 h-6" style={{ color: colors.primary }} />
-                      Pieces a fournir
-                    </h4>
-                    <p className="text-sm text-slate-500 mb-6">Documents requis pour votre candidature :</p>
+              {/* Documents requis - affichage conditionnel */}
+              <Card className="shadow-lg border-slate-200">
+                <CardContent className="p-8">
+                  <h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                    <FileText className="w-6 h-6" style={{ color: colors.primary }} />
+                    Pieces a fournir
+                  </h4>
+                  <p className="text-sm text-slate-500 mb-4">Documents requis en format numerique :</p>
 
-                    <div className="space-y-4">
-                      {docsRequis.map((doc: DocumentRequis, i: number) => (
-                        <div key={doc.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
-                          <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${colors.primary}15` }}>
-                            <span className="font-bold" style={{ color: colors.primary }}>{i + 1}</span>
-                          </div>
-                          <div>
-                            <span className="text-slate-700 font-medium">{doc.nom}</span>
-                            {doc.description && <p className="text-xs text-slate-400">{doc.description}</p>}
-                          </div>
-                          {doc.obligatoire && (
-                            <Badge className="ml-auto text-white text-xs" style={{ backgroundColor: colors.primary }}>
-                              Obligatoire
-                            </Badge>
-                          )}
+                  <div className="space-y-3">
+                    {DOCUMENTS_BASE.map((doc, i) => (
+                      <div key={doc.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${colors.primary}15` }}>
+                          <span className="font-bold" style={{ color: colors.primary }}>{i + 1}</span>
                         </div>
-                      ))}
+                        <span className="text-slate-700 font-medium">{doc.nom}</span>
+                        <Badge className="ml-auto text-white text-xs" style={{ backgroundColor: colors.primary }}>
+                          Obligatoire
+                        </Badge>
+                      </div>
+                    ))}
+                    <div className="flex items-center gap-4 p-4 bg-amber-50 rounded-xl border border-amber-200">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-amber-100">
+                        <span className="font-bold text-amber-700">3</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-700 font-medium">Acte de mariage / Livret de famille</span>
+                        <p className="text-xs text-amber-600 mt-0.5">Si concerne selon votre situation matrimoniale</p>
+                      </div>
+                      <Badge className="ml-auto text-xs bg-amber-100 text-amber-700 border-amber-300">
+                        Conditionnel
+                      </Badge>
                     </div>
+                  </div>
 
-                    <Button
-                      onClick={() => setFormOpen(true)}
-                      className="w-full mt-8 text-white"
-                      style={{ backgroundColor: colors.primary }}
-                    >
-                      Commencer mon inscription
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
+                  <Button
+                    onClick={() => setFormOpen(true)}
+                    className="w-full mt-8 text-white"
+                    style={{ backgroundColor: colors.primary }}
+                  >
+                    Commencer mon inscription
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
@@ -768,7 +897,7 @@ export function LandingPage() {
                 value={chatInput}
                 onChange={e => setChatInput(e.target.value)}
                 placeholder="Ecrivez votre message..."
-                onKeyPress={e => e.key === 'Enter' && handleChatSubmit()}
+                onKeyDown={e => e.key === 'Enter' && handleChatSubmit()}
                 className="rounded-xl"
               />
               <Button
@@ -784,11 +913,20 @@ export function LandingPage() {
         )}
       </div>
 
-      {/* ========== FORMULAIRE DE CANDIDATURE (4 etapes comme Bolokoboue) ========== */}
-      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+      {/* ========== FORMULAIRE D'ACQUISITION (3 etapes style Bolokoboue) ========== */}
+      <Dialog open={formOpen} onOpenChange={(open) => {
+        setFormOpen(open);
+        if (!open) {
+          setFormStep(1);
+          setFormErrors({});
+        }
+      }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl">Formulaire d'inscription — {projet.titre}</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-slate-800">
+              Formulaire d'Acquisition
+            </DialogTitle>
+            <p className="text-slate-500 text-sm mt-1">{projet.titre}</p>
           </DialogHeader>
 
           {submitSuccess ? (
@@ -797,179 +935,411 @@ export function LandingPage() {
                 <CheckCircle className="w-8 h-8" style={{ color: colors.primary }} />
               </div>
               <h3 className="text-xl font-bold text-slate-800 mb-2">Inscription envoyee avec succes !</h3>
-              <p className="text-slate-500">Nous vous contacterons dans les plus brefs delais.</p>
+              <p className="text-slate-500 mb-2">Votre dossier a bien ete enregistre.</p>
+              <p className="text-slate-400 text-sm">Nous vous contacterons dans les plus brefs delais pour la suite de la procedure.</p>
               <Button className="mt-6 text-white" onClick={() => setFormOpen(false)} style={{ backgroundColor: colors.primary }}>
                 Fermer
               </Button>
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Barre de progression */}
-              <div className="flex items-center gap-2 mb-6">
-                {[1, 2, 3, 4].map(step => (
-                  <div
-                    key={step}
-                    className="flex-1 h-2 rounded-full transition-colors"
-                    style={{ backgroundColor: step <= formStep ? colors.primary : '#e2e8f0' }}
-                  />
-                ))}
-              </div>
-              <div className="flex items-center gap-2 text-sm mb-2">
-                <span className="font-semibold" style={{ color: colors.primary }}>Etape {formStep}/4</span>
-                <span className="text-slate-400">-</span>
-                <span className="text-slate-500">
-                  {formStep === 1 && 'Informations personnelles'}
-                  {formStep === 2 && 'Adresse et situation professionnelle'}
-                  {formStep === 3 && 'Situation financiere'}
-                  {formStep === 4 && 'Documents a fournir'}
-                </span>
+              {/* Indicateur de progression */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3].map(step => (
+                    <div key={step} className="flex-1 flex items-center gap-2">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-colors ${
+                          step < formStep
+                            ? 'text-white'
+                            : step === formStep
+                            ? 'text-white'
+                            : 'bg-slate-200 text-slate-500'
+                        }`}
+                        style={step <= formStep ? { backgroundColor: colors.primary } : undefined}
+                      >
+                        {step < formStep ? <CheckCircle className="w-4 h-4" /> : step}
+                      </div>
+                      {step < 3 && (
+                        <div
+                          className="flex-1 h-1 rounded-full transition-colors"
+                          style={{ backgroundColor: step < formStep ? colors.primary : '#e2e8f0' }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="font-semibold" style={{ color: colors.primary }}>Etape {formStep} sur 3</span>
+                  <span className="text-slate-400">—</span>
+                  <span className="text-slate-500">
+                    {formStep === 1 && 'Informations personnelles'}
+                    {formStep === 2 && 'Situation professionnelle'}
+                    {formStep === 3 && 'Pieces justificatives'}
+                  </span>
+                </div>
               </div>
 
-              {/* Etape 1: Informations personnelles */}
+              <p className="text-sm text-slate-400">
+                Veuillez remplir le formulaire ci-dessous pour initier votre demande d'acquisition. Preparez vos pieces justificatives numeriques avant de commencer.
+              </p>
+
+              {/* ===== ETAPE 1 : Informations personnelles ===== */}
               {formStep === 1 && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg flex items-center gap-2">
+                <div className="space-y-5">
+                  <h3 className="font-semibold text-lg flex items-center gap-2 text-slate-800">
                     <User className="w-5 h-5" style={{ color: colors.primary }} />
                     Informations personnelles
                   </h3>
-                  <div className="grid grid-cols-2 gap-4">
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label>Nom *</Label>
-                      <Input value={formData.nom} onChange={e => setFormData(prev => ({ ...prev, nom: e.target.value }))} placeholder="Votre nom" />
+                      <Label className="text-slate-700">Nom *</Label>
+                      <Input
+                        value={formData.nom}
+                        onChange={e => updateField('nom', e.target.value)}
+                        placeholder="Votre nom de famille"
+                        className={formErrors.nom ? 'border-red-400' : ''}
+                      />
+                      <FieldError field="nom" />
                     </div>
                     <div>
-                      <Label>Prenom *</Label>
-                      <Input value={formData.prenom} onChange={e => setFormData(prev => ({ ...prev, prenom: e.target.value }))} placeholder="Votre prenom" />
+                      <Label className="text-slate-700">Prenom *</Label>
+                      <Input
+                        value={formData.prenom}
+                        onChange={e => updateField('prenom', e.target.value)}
+                        placeholder="Votre prenom"
+                        className={formErrors.prenom ? 'border-red-400' : ''}
+                      />
+                      <FieldError field="prenom" />
                     </div>
                   </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-slate-700">Date de naissance *</Label>
+                      <Input
+                        type="date"
+                        value={formData.date_naissance}
+                        onChange={e => updateField('date_naissance', e.target.value)}
+                        className={formErrors.date_naissance ? 'border-red-400' : ''}
+                      />
+                      <FieldError field="date_naissance" />
+                    </div>
+                    <div>
+                      <Label className="text-slate-700">Lieu de naissance *</Label>
+                      <Input
+                        value={formData.lieu_naissance}
+                        onChange={e => updateField('lieu_naissance', e.target.value)}
+                        placeholder="Ex: Libreville"
+                        className={formErrors.lieu_naissance ? 'border-red-400' : ''}
+                      />
+                      <FieldError field="lieu_naissance" />
+                    </div>
+                  </div>
+
                   <div>
-                    <Label>Email *</Label>
-                    <Input type="email" value={formData.email} onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))} placeholder="votre@email.com" />
+                    <Label className="text-slate-700">Situation matrimoniale *</Label>
+                    <select
+                      value={formData.situation_familiale}
+                      onChange={e => updateField('situation_familiale', e.target.value)}
+                      className={`w-full h-10 px-3 rounded-md border bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                        formErrors.situation_familiale ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-slate-400'
+                      }`}
+                    >
+                      <option value="">Selectionnez votre situation</option>
+                      {SITUATIONS_MATRIMONIALES.map(s => (
+                        <option key={s.value} value={s.value}>{s.label}</option>
+                      ))}
+                    </select>
+                    <FieldError field="situation_familiale" />
+                    {formData.situation_familiale && (
+                      <p className="text-xs mt-1.5 px-2 py-1 rounded bg-blue-50 text-blue-600">
+                        {formData.situation_familiale === 'celibataire' && "Aucun document supplementaire requis pour votre situation."}
+                        {formData.situation_familiale === 'marie' && "Vous devrez fournir votre acte de mariage et livret de famille a l'etape 3."}
+                        {formData.situation_familiale === 'union_libre' && "Vous devrez fournir votre acte de mariage et livret de famille a l'etape 3."}
+                        {formData.situation_familiale === 'divorce' && "Vous devrez fournir votre jugement de divorce a l'etape 3."}
+                        {formData.situation_familiale === 'veuf' && "Vous devrez fournir l'acte de deces du conjoint a l'etape 3."}
+                      </p>
+                    )}
                   </div>
-                  <div>
-                    <Label>Telephone *</Label>
-                    <Input value={formData.telephone} onChange={e => setFormData(prev => ({ ...prev, telephone: e.target.value }))} placeholder="+241 XX XX XX XX" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label>Date de naissance</Label>
-                      <Input type="date" value={formData.date_naissance} onChange={e => setFormData(prev => ({ ...prev, date_naissance: e.target.value }))} />
+                      <Label className="text-slate-700">Email *</Label>
+                      <Input
+                        type="email"
+                        value={formData.email}
+                        onChange={e => updateField('email', e.target.value)}
+                        placeholder="votre@email.com"
+                        className={formErrors.email ? 'border-red-400' : ''}
+                      />
+                      <FieldError field="email" />
                     </div>
                     <div>
-                      <Label>Lieu de naissance</Label>
-                      <Input value={formData.lieu_naissance} onChange={e => setFormData(prev => ({ ...prev, lieu_naissance: e.target.value }))} placeholder="Libreville" />
+                      <Label className="text-slate-700">Telephone *</Label>
+                      <Input
+                        value={formData.telephone}
+                        onChange={e => updateField('telephone', e.target.value)}
+                        placeholder="+241 XX XX XX XX"
+                        className={formErrors.telephone ? 'border-red-400' : ''}
+                      />
+                      <FieldError field="telephone" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-slate-700">WhatsApp <span className="text-slate-400 font-normal">(optionnel, si different du telephone)</span></Label>
+                    <Input
+                      value={formData.whatsapp}
+                      onChange={e => updateField('whatsapp', e.target.value)}
+                      placeholder="+241 XX XX XX XX"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-slate-700">Adresse actuelle</Label>
+                    <Input
+                      value={formData.adresse}
+                      onChange={e => updateField('adresse', e.target.value)}
+                      placeholder="Votre adresse de residence"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-slate-700">Ville / Pays</Label>
+                      <Input
+                        value={formData.ville}
+                        onChange={e => updateField('ville', e.target.value)}
+                        placeholder="Ex: Libreville, Gabon"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-slate-700">Nationalite</Label>
+                      <Input
+                        value={formData.nationalite}
+                        onChange={e => updateField('nationalite', e.target.value)}
+                        placeholder="Gabonaise"
+                      />
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Etape 2: Adresse et situation professionnelle */}
+              {/* ===== ETAPE 2 : Situation professionnelle ===== */}
               {formStep === 2 && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg flex items-center gap-2">
-                    <MapPin className="w-5 h-5" style={{ color: colors.primary }} />
-                    Adresse et situation
+                <div className="space-y-5">
+                  <h3 className="font-semibold text-lg flex items-center gap-2 text-slate-800">
+                    <Briefcase className="w-5 h-5" style={{ color: colors.primary }} />
+                    Situation professionnelle
                   </h3>
+
                   <div>
-                    <Label>Adresse</Label>
-                    <Input value={formData.adresse} onChange={e => setFormData(prev => ({ ...prev, adresse: e.target.value }))} placeholder="Votre adresse actuelle" />
+                    <Label className="text-slate-700">Profession *</Label>
+                    <Input
+                      value={formData.profession}
+                      onChange={e => updateField('profession', e.target.value)}
+                      placeholder="Ex: Ingenieur, Enseignant, Medecin..."
+                      className={formErrors.profession ? 'border-red-400' : ''}
+                    />
+                    <FieldError field="profession" />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Ville</Label>
-                      <Input value={formData.ville} onChange={e => setFormData(prev => ({ ...prev, ville: e.target.value }))} placeholder="Libreville" />
-                    </div>
-                    <div>
-                      <Label>Code postal</Label>
-                      <Input value={formData.code_postal} onChange={e => setFormData(prev => ({ ...prev, code_postal: e.target.value }))} placeholder="BP XXXX" />
-                    </div>
-                  </div>
+
                   <div>
-                    <Label>Profession</Label>
-                    <Input value={formData.profession} onChange={e => setFormData(prev => ({ ...prev, profession: e.target.value }))} placeholder="Votre profession" />
+                    <Label className="text-slate-700">Entreprise / Employeur</Label>
+                    <Input
+                      value={formData.employeur}
+                      onChange={e => updateField('employeur', e.target.value)}
+                      placeholder="Nom de votre employeur ou entreprise"
+                    />
                   </div>
+
                   <div>
-                    <Label>Employeur</Label>
-                    <Input value={formData.employeur} onChange={e => setFormData(prev => ({ ...prev, employeur: e.target.value }))} placeholder="Nom de votre employeur" />
+                    <Label className="text-slate-700">Categorie socio-professionnelle *</Label>
+                    <select
+                      value={formData.categorie_sociopro}
+                      onChange={e => updateField('categorie_sociopro', e.target.value)}
+                      className={`w-full h-10 px-3 rounded-md border bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                        formErrors.categorie_sociopro ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-slate-400'
+                      }`}
+                    >
+                      <option value="">Selectionnez votre categorie</option>
+                      {CATEGORIES_SOCIOPRO.map(c => (
+                        <option key={c.value} value={c.value}>{c.label}</option>
+                      ))}
+                    </select>
+                    <FieldError field="categorie_sociopro" />
                   </div>
+
                   <div>
-                    <Label>Revenus mensuels nets (FCFA)</Label>
-                    <Input type="number" value={formData.revenus_mensuels} onChange={e => setFormData(prev => ({ ...prev, revenus_mensuels: e.target.value }))} placeholder="500000" />
+                    <Label className="text-slate-700">Revenus annuels *</Label>
+                    <select
+                      value={formData.tranche_revenus}
+                      onChange={e => updateField('tranche_revenus', e.target.value)}
+                      className={`w-full h-10 px-3 rounded-md border bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                        formErrors.tranche_revenus ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-slate-400'
+                      }`}
+                    >
+                      <option value="">Selectionnez votre tranche de revenus</option>
+                      {TRANCHES_REVENUS.map(t => (
+                        <option key={t.value} value={t.value}>{t.label}</option>
+                      ))}
+                    </select>
+                    <FieldError field="tranche_revenus" />
                   </div>
                 </div>
               )}
 
-              {/* Etape 3: Situation financiere */}
+              {/* ===== ETAPE 3 : Pieces justificatives ===== */}
               {formStep === 3 && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg flex items-center gap-2">
-                    <Scale className="w-5 h-5" style={{ color: colors.primary }} />
-                    Situation financiere
-                  </h3>
-                  <div>
-                    <Label>Apport personnel (FCFA)</Label>
-                    <Input type="number" value={formData.apport_personnel} onChange={e => setFormData(prev => ({ ...prev, apport_personnel: e.target.value }))} placeholder="1000000" />
-                  </div>
-                  <div>
-                    <Label>Montant du pret sollicite (FCFA)</Label>
-                    <Input type="number" value={formData.montant_pret_sollicite} onChange={e => setFormData(prev => ({ ...prev, montant_pret_sollicite: e.target.value }))} placeholder="5000000" />
-                  </div>
-                  <div>
-                    <Label>Duree du pret (mois)</Label>
-                    <Input type="number" value={formData.duree_pret} onChange={e => setFormData(prev => ({ ...prev, duree_pret: e.target.value }))} placeholder="120" />
-                  </div>
-                  <div>
-                    <Label>Banque actuelle</Label>
-                    <Input value={formData.banque_actuelle} onChange={e => setFormData(prev => ({ ...prev, banque_actuelle: e.target.value }))} placeholder="Nom de votre banque" />
-                  </div>
-                </div>
-              )}
-
-              {/* Etape 4: Documents */}
-              {formStep === 4 && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg flex items-center gap-2">
+                <div className="space-y-5">
+                  <h3 className="font-semibold text-lg flex items-center gap-2 text-slate-800">
                     <Upload className="w-5 h-5" style={{ color: colors.primary }} />
-                    Documents a fournir
+                    Pieces justificatives
                   </h3>
-                  <p className="text-sm text-slate-500">Telechargez vos documents en format PDF ou image :</p>
+                  <p className="text-sm text-slate-500">
+                    Telechargez vos documents en format PDF ou image (JPG, PNG). Taille maximale : 10 Mo par fichier.
+                  </p>
 
-                  {docsRequis.length > 0 ? docsRequis.map((doc: DocumentRequis) => (
-                    <div key={doc.id} className="p-4 border rounded-xl bg-slate-50">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <p className="font-medium">{doc.nom}</p>
-                          <p className="text-sm text-slate-500">{doc.description}</p>
-                          {doc.obligatoire && (
-                            <Badge className="mt-1 text-white text-xs" style={{ backgroundColor: colors.primary }}>
-                              Obligatoire
-                            </Badge>
+                  {formData.situation_familiale && (
+                    <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                      <p className="text-sm text-blue-700 font-medium">
+                        Documents requis pour votre situation : {SITUATIONS_MATRIMONIALES.find(s => s.value === formData.situation_familiale)?.label}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    {documentsFormulaire.map((doc) => (
+                      <div key={doc.id} className="p-4 border rounded-xl bg-white hover:shadow-sm transition-shadow">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start gap-3">
+                            <div
+                              className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                              style={{ backgroundColor: documents[doc.id] ? `${colors.primary}15` : '#f1f5f9' }}
+                            >
+                              {documents[doc.id] ? (
+                                <CheckCircle className="w-5 h-5" style={{ color: colors.primary }} />
+                              ) : (
+                                <FileText className="w-5 h-5 text-slate-400" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium text-slate-800">{doc.nom}</p>
+                              {doc.obligatoire && (
+                                <Badge className="mt-1 text-white text-xs" style={{ backgroundColor: colors.primary }}>
+                                  Obligatoire
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="ml-13">
+                          <label
+                            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed cursor-pointer transition-colors ${
+                              documents[doc.id]
+                                ? 'border-green-300 bg-green-50'
+                                : 'border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100'
+                            }`}
+                          >
+                            <Upload className="w-4 h-4 text-slate-500" />
+                            <span className="text-sm text-slate-600">
+                              {documents[doc.id] ? documents[doc.id].name : 'Choisir un fichier'}
+                            </span>
+                            <input
+                              type="file"
+                              accept=".pdf,.jpg,.jpeg,.png"
+                              className="hidden"
+                              onChange={e => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  setDocuments(prev => ({ ...prev, [doc.id]: file }));
+                                }
+                              }}
+                            />
+                          </label>
+                          {documents[doc.id] && (
+                            <div className="flex items-center justify-between mt-2">
+                              <p className="text-xs text-green-600 flex items-center gap-1">
+                                <CheckCircle className="w-3 h-3" />
+                                Fichier selectionne ({(documents[doc.id].size / 1024 / 1024).toFixed(2)} Mo)
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => setDocuments(prev => {
+                                  const next = { ...prev };
+                                  delete next[doc.id];
+                                  return next;
+                                })}
+                                className="text-xs text-red-500 hover:text-red-700"
+                              >
+                                Supprimer
+                              </button>
+                            </div>
                           )}
                         </div>
                       </div>
-                      <Input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={e => {
-                          const file = e.target.files?.[0];
-                          if (file) setDocuments(prev => ({ ...prev, [doc.id]: file }));
-                        }}
-                        className="mt-2"
-                      />
-                      {documents[doc.id] && (
-                        <p className="text-sm mt-1 flex items-center gap-1" style={{ color: colors.primary }}>
-                          <CheckCircle className="w-3.5 h-3.5" />
-                          {documents[doc.id].name}
-                        </p>
-                      )}
-                    </div>
-                  )) : (
-                    <p className="text-slate-400 text-center py-4">Aucun document requis pour ce projet.</p>
+                    ))}
+                  </div>
+
+                  {/* Documents supplementaires du projet */}
+                  {docsRequis.length > 0 && (
+                    <>
+                      <div className="border-t pt-4 mt-4">
+                        <p className="text-sm font-medium text-slate-700 mb-3">Documents supplementaires demandes par le projet :</p>
+                      </div>
+                      {docsRequis.map((doc: DocumentRequis) => (
+                        <div key={doc.id} className="p-4 border rounded-xl bg-white">
+                          <div className="flex items-start gap-3 mb-3">
+                            <div
+                              className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+                              style={{ backgroundColor: documents[doc.id] ? `${colors.primary}15` : '#f1f5f9' }}
+                            >
+                              {documents[doc.id] ? (
+                                <CheckCircle className="w-5 h-5" style={{ color: colors.primary }} />
+                              ) : (
+                                <FileText className="w-5 h-5 text-slate-400" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium text-slate-800">{doc.nom}</p>
+                              {doc.description && <p className="text-xs text-slate-400">{doc.description}</p>}
+                              {doc.obligatoire && (
+                                <Badge className="mt-1 text-white text-xs" style={{ backgroundColor: colors.primary }}>
+                                  Obligatoire
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          <label className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed cursor-pointer transition-colors ${
+                            documents[doc.id]
+                              ? 'border-green-300 bg-green-50'
+                              : 'border-slate-300 bg-slate-50 hover:border-slate-400'
+                          }`}>
+                            <Upload className="w-4 h-4 text-slate-500" />
+                            <span className="text-sm text-slate-600">
+                              {documents[doc.id] ? documents[doc.id].name : 'Choisir un fichier'}
+                            </span>
+                            <input
+                              type="file"
+                              accept=".pdf,.jpg,.jpeg,.png"
+                              className="hidden"
+                              onChange={e => {
+                                const file = e.target.files?.[0];
+                                if (file) setDocuments(prev => ({ ...prev, [doc.id]: file }));
+                              }}
+                            />
+                          </label>
+                        </div>
+                      ))}
+                    </>
                   )}
                 </div>
               )}
 
-              {/* Navigation */}
+              {/* Navigation entre etapes */}
               <div className="flex justify-between pt-4 border-t">
                 <Button
                   variant="outline"
@@ -978,9 +1348,9 @@ export function LandingPage() {
                 >
                   Precedent
                 </Button>
-                {formStep < 4 ? (
+                {formStep < 3 ? (
                   <Button
-                    onClick={() => setFormStep(prev => prev + 1)}
+                    onClick={handleNextStep}
                     className="text-white"
                     style={{ backgroundColor: colors.primary }}
                   >
@@ -994,7 +1364,7 @@ export function LandingPage() {
                     className="text-white"
                     style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
                   >
-                    {creatingCandidat ? 'Envoi en cours...' : 'Envoyer mon inscription'}
+                    {creatingCandidat ? 'Envoi en cours...' : "Envoyer mon dossier"}
                   </Button>
                 )}
               </div>
