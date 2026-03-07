@@ -123,6 +123,7 @@ export function LandingPage() {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; message: string }[]>([]);
   const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Lightbox galerie
@@ -182,48 +183,118 @@ export function LandingPage() {
     }
   }, [chatbotConfig]);
 
+  const chatSessionId = useRef('session-' + Date.now());
+
+  const buildSystemPrompt = (): string => {
+    if (!projet) return '';
+    const p = projet as any;
+    const meta = p.metadata as Record<string, any> | null;
+
+    const docs = (p.documents_requis || [])
+      .map((d: DocumentRequis) => `- ${d.nom}${d.obligatoire ? ' (obligatoire)' : ' (facultatif)'}${d.description ? ': ' + d.description : ''}`)
+      .join('\n') || 'Non renseigne';
+
+    const conditions = p.conditions_eligibilite?.length
+      ? p.conditions_eligibilite.map((c: string) => `- ${c}`).join('\n')
+      : 'Non renseigne';
+
+    const produits = (meta?.produits || []).length
+      ? (meta?.produits || []).map((pr: Produit) => `- ${pr.nom}: ${pr.surface} m2, ${formatFCFA(pr.prix)}${pr.description ? ' - ' + pr.description : ''}`).join('\n')
+      : '';
+
+    return `Tu es l'assistant virtuel de l'etude notariale qui gere le projet immobilier "${p.titre}". Tu reponds aux questions des visiteurs de maniere professionnelle, chaleureuse et concise en francais.
+
+INFORMATIONS DU PROJET:
+- Titre: ${p.titre || 'Non renseigne'}
+- Description: ${p.description || 'Non renseigne'}
+- Type de bien: ${p.type_bien || 'Non renseigne'}
+- Prix: ${p.prix ? formatFCFA(p.prix) : 'Non renseigne'}
+- Surface: ${p.surface ? p.surface + ' m2' : 'Non renseigne'}
+- Nombre de pieces: ${p.nb_pieces || 'Non renseigne'}
+- Nombre de chambres: ${p.nb_chambres || 'Non renseigne'}
+- Adresse: ${p.adresse || 'Non renseigne'}${p.quartier ? ', ' + p.quartier : ''}, ${p.ville || 'Non renseigne'}
+- Contact email: ${p.contact_email || 'Non renseigne'}
+- Contact telephone: ${p.contact_phone || 'Non renseigne'}
+${meta?.lien_localisation || p.lien_localisation ? `- Localisation: ${meta?.lien_localisation || p.lien_localisation}` : ''}
+
+${produits ? `PARCELLES / OFFRES DISPONIBLES:\n${produits}` : ''}
+
+DOCUMENTS REQUIS POUR L'INSCRIPTION:
+${docs}
+
+CONDITIONS D'ELIGIBILITE:
+${conditions}
+
+REGLES:
+- Reponds UNIQUEMENT a partir des informations ci-dessus. Ne fabrique jamais d'informations.
+- Si tu ne connais pas la reponse, dis-le honnetement et invite le visiteur a contacter le cabinet directement.
+- Encourage les visiteurs a s'inscrire via le formulaire sur la page.
+- Sois concis (2-4 phrases maximum par reponse).
+- Ne reponds qu'aux questions liees au projet immobilier. Pour toute autre question, redirige poliment vers le sujet du projet.
+- Utilise un ton professionnel mais accessible.`;
+  };
+
   const handleChatSubmit = async () => {
-    if (!chatInput.trim() || !projet) return;
+    if (!chatInput.trim() || !projet || chatLoading) return;
 
     const userMessage = chatInput.trim();
-    setChatMessages(prev => [...prev, { role: 'user', message: userMessage }]);
+    const currentMessages = [...chatMessages, { role: 'user' as const, message: userMessage }];
+    setChatMessages(currentMessages);
     setChatInput('');
+    setChatLoading(true);
 
-    let response = '';
-    const lowerMessage = userMessage.toLowerCase();
-
-    if (lowerMessage.includes('document') || lowerMessage.includes('piece')) {
-      const docs = (projet as any).documents_requis?.map((d: DocumentRequis) => d.nom).join(', ');
-      response = `Les documents requis sont : ${docs || 'Acte de naissance legalise, piece d\'identite, acte de mariage (si concerne), livret de famille (si necessaire)'}`;
-    } else if (lowerMessage.includes('prix') || lowerMessage.includes('cout')) {
-      response = `Le prix de ce bien est de ${projet.prix ? formatFCFA(projet.prix) : 'non renseigne'}.`;
-    } else if (lowerMessage.includes('surface') || lowerMessage.includes('m2')) {
-      response = `La surface est de ${projet.surface} m2.`;
-    } else if (lowerMessage.includes('delai') || lowerMessage.includes('temps')) {
-      response = 'Le delai de traitement des candidatures est generalement de 2 a 3 semaines.';
-    } else if (lowerMessage.includes('contact') || lowerMessage.includes('joindre')) {
-      response = `Vous pouvez nous contacter par email a ${projet.contact_email} ou par telephone au ${projet.contact_phone}.`;
-    } else if (lowerMessage.includes('condition') || lowerMessage.includes('eligible')) {
-      const conditions = (projet as any).conditions_eligibilite?.join(', ');
-      response = conditions
-        ? `Les conditions d'eligibilite sont : ${conditions}`
-        : 'Les conditions d\'eligibilite incluent des revenus stables et un apport personnel.';
-    } else if (lowerMessage.includes('localisation') || lowerMessage.includes('adresse') || lowerMessage.includes('ou')) {
-      response = `Le bien est situe a ${projet.adresse}${(projet as any).quartier ? ', ' + (projet as any).quartier : ''}, ${projet.ville}.`;
-    } else {
-      response = 'Je comprends. Pour plus d\'informations, je vous invite a remplir le formulaire de candidature ou a contacter directement le cabinet.';
-    }
-
-    setTimeout(() => {
-      setChatMessages(prev => [...prev, { role: 'assistant', message: response }]);
-    }, 500);
-
-    await supabase.from('chatbot_messages').insert({
+    // Save user message
+    supabase.from('chatbot_messages').insert({
       projet_id: projet.id,
       role: 'user',
       message: userMessage,
-      session_id: 'session-' + Date.now(),
+      session_id: chatSessionId.current,
     } as any);
+
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+
+    try {
+      if (!apiKey) throw new Error('No API key');
+
+      const openaiMessages = [
+        { role: 'system', content: buildSystemPrompt() },
+        ...currentMessages
+          .filter(m => m.role === 'user' || m.role === 'assistant')
+          .slice(-20)
+          .map(m => ({ role: m.role, content: m.message })),
+      ];
+
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          max_tokens: 300,
+          messages: openaiMessages,
+        }),
+      });
+
+      if (!res.ok) throw new Error('API error');
+      const data = await res.json();
+      const reply = data.choices?.[0]?.message?.content || 'Desole, je n\'ai pas pu generer une reponse.';
+      setChatMessages(prev => [...prev, { role: 'assistant', message: reply }]);
+
+      // Save assistant message
+      supabase.from('chatbot_messages').insert({
+        projet_id: projet.id,
+        role: 'assistant',
+        message: reply,
+        session_id: chatSessionId.current,
+      } as any);
+    } catch {
+      // Fallback basique si API indisponible
+      setChatMessages(prev => [...prev, { role: 'assistant', message: 'Desole, le service est temporairement indisponible. Veuillez contacter directement le cabinet.' }]);
+    } finally {
+      setChatLoading(false);
+    }
   };
 
   const updateField = (field: string, value: string) => {
@@ -982,6 +1053,13 @@ export function LandingPage() {
                   {msg.message}
                 </div>
               ))}
+              {chatLoading && (
+                <div className="bg-slate-100 text-slate-500 mr-8 rounded-2xl rounded-bl-md p-3 text-sm flex items-center gap-1">
+                  <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+              )}
               <div ref={chatEndRef} />
             </div>
             <div className="p-3 border-t flex gap-2">
@@ -991,12 +1069,14 @@ export function LandingPage() {
                 placeholder="Ecrivez votre message..."
                 onKeyDown={e => e.key === 'Enter' && handleChatSubmit()}
                 className="rounded-xl"
+                disabled={chatLoading}
               />
               <Button
                 size="icon"
                 onClick={handleChatSubmit}
                 className="text-white rounded-xl"
                 style={{ backgroundColor: colors.primary }}
+                disabled={chatLoading}
               >
                 <Send className="w-4 h-4" />
               </Button>
