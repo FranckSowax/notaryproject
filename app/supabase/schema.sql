@@ -57,9 +57,10 @@ CREATE TABLE projets (
     description TEXT,
     
     -- Localisation
-    adresse TEXT,
+    adresse TEXT NOT NULL,
     ville VARCHAR(100),
-    code_postal VARCHAR(20),
+    quartier VARCHAR(100) DEFAULT '',
+    lien_localisation TEXT,
     
     -- Caractéristiques du bien
     type_bien VARCHAR(50), -- 'appartement', 'maison', 'villa', 'commerce', 'terrain', 'autre'

@@ -245,7 +245,8 @@ export function NouveauProjet() {
     description: '',
     adresse: '',
     ville: '',
-    code_postal: '',
+    quartier: '',
+    lien_localisation: '',
     type_bien: 'appartement',
     prix: '',
     surface: '',
@@ -458,7 +459,8 @@ export function NouveauProjet() {
         description: formData.description,
         adresse: formData.adresse,
         ville: formData.ville,
-        code_postal: formData.code_postal,
+        quartier: formData.quartier,
+        lien_localisation: formData.lien_localisation || null,
         type_bien: formData.type_bien,
         prix: parseFloat(formData.prix) || 0,
         surface: parseFloat(formData.surface) || 0,
@@ -748,7 +750,7 @@ export function NouveauProjet() {
                     name="adresse"
                     value={formData.adresse}
                     onChange={handleInputChange}
-                    placeholder="12 rue de la Paix"
+                    placeholder="Quartier Glass, Rue des Cocotiers"
                     className={!formData.adresse.trim() ? 'border-amber-300 focus:border-amber-500' : 'border-green-300'}
                   />
                 </div>
@@ -765,15 +767,26 @@ export function NouveauProjet() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="code_postal">Code postal</Label>
+                    <Label htmlFor="quartier">Quartier</Label>
                     <Input
-                      id="code_postal"
-                      name="code_postal"
-                      value={formData.code_postal}
+                      id="quartier"
+                      name="quartier"
+                      value={formData.quartier}
                       onChange={handleInputChange}
-                      placeholder="BP 1234"
+                      placeholder="Akebe, Glass, Nzeng-Ayong..."
                     />
                   </div>
+                </div>
+                <div>
+                  <Label htmlFor="lien_localisation">Lien Google Maps <span className="text-xs text-slate-400">(facultatif)</span></Label>
+                  <Input
+                    id="lien_localisation"
+                    name="lien_localisation"
+                    value={formData.lien_localisation}
+                    onChange={handleInputChange}
+                    placeholder="https://maps.google.com/..."
+                  />
+                  <p className="text-xs text-slate-400 mt-1">Collez un lien Google Maps pour afficher la carte sur la page du projet</p>
                 </div>
               </CardContent>
             </Card>

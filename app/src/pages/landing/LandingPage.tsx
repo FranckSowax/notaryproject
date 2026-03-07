@@ -32,6 +32,26 @@ import { supabase } from '@/lib/supabase';
 import { formatFCFA } from '@/lib/formatCurrency';
 import type { DocumentRequis, DocumentFourni } from '@/types';
 
+function getGoogleMapsEmbedUrl(lien: string | null | undefined): string | null {
+  if (!lien) return null;
+  // If already an embed URL, use as-is
+  if (lien.includes('/embed')) return lien;
+  // Extract coordinates from Google Maps URL: /@lat,lng
+  const coordMatch = lien.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (coordMatch) {
+    const [, lat, lng] = coordMatch;
+    return `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
+  }
+  // Extract place query from URL path
+  const placeMatch = lien.match(/\/place\/([^/@]+)/);
+  if (placeMatch) {
+    const place = decodeURIComponent(placeMatch[1].replace(/\+/g, ' '));
+    return `https://maps.google.com/maps?q=${encodeURIComponent(place)}&z=15&output=embed`;
+  }
+  // Fallback: use the full link as a query
+  return `https://maps.google.com/maps?q=${encodeURIComponent(lien)}&z=15&output=embed`;
+}
+
 function getThemeColors(projet: any): { primary: string; secondary: string } {
   const meta = projet?.metadata as Record<string, any> | null | undefined;
   return {
@@ -319,7 +339,7 @@ export function LandingPage() {
 
             <p className="text-lg sm:text-xl text-white/80 flex items-center gap-2 mb-6">
               <MapPin className="w-5 h-5 flex-shrink-0" />
-              {projet.adresse}{projet.ville ? `, ${projet.ville}` : ''}
+              {projet.adresse}{projet.quartier ? `, ${projet.quartier}` : ''}{projet.ville ? ` — ${projet.ville}` : ''}
             </p>
 
             {projet.prix > 0 && (
@@ -515,7 +535,7 @@ export function LandingPage() {
                       )}
                       <div className="flex justify-between py-2">
                         <span className="text-slate-500">Localisation</span>
-                        <span className="font-semibold text-slate-900 text-right">{projet.ville}</span>
+                        <span className="font-semibold text-slate-900 text-right">{projet.quartier ? `${projet.quartier}, ` : ''}{projet.ville}</span>
                       </div>
                     </div>
                     <Button
@@ -647,6 +667,41 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* ========== CARTE GOOGLE MAPS ========== */}
+      {projet.lien_localisation && (() => {
+        const embedUrl = getGoogleMapsEmbedUrl(projet.lien_localisation);
+        if (!embedUrl) return null;
+        return (
+          <section className="py-20 sm:py-28 bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-12">
+                <Badge className="mb-4 px-4 py-1.5 text-sm font-medium" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
+                  Localisation
+                </Badge>
+                <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
+                  Ou se situe le bien ?
+                </h2>
+                <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+                  {projet.adresse}{projet.quartier ? `, ${projet.quartier}` : ''}{projet.ville ? ` — ${projet.ville}` : ''}
+                </p>
+              </div>
+              <div className="rounded-2xl overflow-hidden shadow-lg border border-slate-200">
+                <iframe
+                  src={embedUrl}
+                  width="100%"
+                  height="450"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Localisation du bien"
+                />
+              </div>
+            </div>
+          </section>
+        );
+      })()}
+
       {/* ========== CTA CANDIDATURE ========== */}
       <section id="candidature" className="py-20 sm:py-28 relative overflow-hidden">
         <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }} />
@@ -717,8 +772,9 @@ export function LandingPage() {
               <h3 className="font-bold text-lg mb-6">Adresse</h3>
               <p className="text-slate-300 leading-relaxed">
                 {projet.adresse}
+                {projet.quartier && <><br />{projet.quartier}</>}
                 <br />
-                {projet.code_postal} {projet.ville}
+                {projet.ville}
               </p>
               <div className="mt-6">
                 <Button

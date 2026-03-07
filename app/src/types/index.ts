@@ -8,7 +8,8 @@ export interface ProjetImmobilier {
   description: string;
   adresse: string;
   ville: string;
-  code_postal: string;
+  quartier: string;
+  lien_localisation: string | null;
   type_bien: 'appartement' | 'maison' | 'villa' | 'commerce' | 'terrain' | 'autre';
   prix: number;
   surface: number;

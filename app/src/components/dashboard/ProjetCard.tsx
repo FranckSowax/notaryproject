@@ -110,7 +110,7 @@ export function ProjetCard({ projet, onToggleStatut }: ProjetCardProps) {
 
         <p className="text-sm text-slate-500 mb-4 flex items-center gap-1">
           <MapPin className="w-4 h-4" />
-          {projet.ville}, {projet.code_postal}
+          {projet.quartier ? `${projet.quartier}, ` : ''}{projet.ville}
         </p>
 
         <div className="grid grid-cols-3 gap-4 mb-4">
