@@ -251,46 +251,85 @@ REGLES:
       session_id: chatSessionId.current,
     } as any);
 
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-
     try {
-      if (!apiKey) throw new Error('No API key');
+      const p = projet as any;
+      const meta = p.metadata as Record<string, any> | null;
+      const projetContext = {
+        titre: p.titre || '',
+        description: p.description || '',
+        type_bien: p.type_bien || '',
+        prix: p.prix,
+        surface: p.surface,
+        nb_pieces: p.nb_pieces,
+        nb_chambres: p.nb_chambres,
+        adresse: p.adresse || '',
+        ville: p.ville || '',
+        quartier: p.quartier || '',
+        contact_email: p.contact_email || '',
+        contact_phone: p.contact_phone || '',
+        conditions_eligibilite: p.conditions_eligibilite || [],
+        documents_requis: (p.documents_requis || []).map((d: DocumentRequis) => ({
+          nom: d.nom, description: d.description || '', obligatoire: d.obligatoire,
+        })),
+        produits: (meta?.produits || []).map((pr: Produit) => ({
+          nom: pr.nom, surface: pr.surface, prix: pr.prix, description: pr.description || '',
+        })),
+        lien_localisation: meta?.lien_localisation || p.lien_localisation || '',
+      };
 
-      const openaiMessages = [
-        { role: 'system', content: buildSystemPrompt() },
-        ...currentMessages
-          .filter(m => m.role === 'user' || m.role === 'assistant')
-          .slice(-20)
-          .map(m => ({ role: m.role, content: m.message })),
-      ];
+      let reply: string;
 
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      // Try Netlify function first (production), then direct OpenAI call (local dev)
+      const netlifyRes = await fetch('/.netlify/functions/chatbot', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          max_tokens: 300,
-          messages: openaiMessages,
+          message: userMessage,
+          conversation: currentMessages.slice(-20),
+          projet: projetContext,
         }),
-      });
+      }).catch(() => null);
 
-      if (!res.ok) throw new Error('API error');
-      const data = await res.json();
-      const reply = data.choices?.[0]?.message?.content || 'Desole, je n\'ai pas pu generer une reponse.';
+      if (netlifyRes && netlifyRes.ok) {
+        const data = await netlifyRes.json();
+        reply = data.response;
+      } else {
+        // Fallback: direct OpenAI call (local dev)
+        const apiKey = import.meta.env.VITE_OPENAI_API_KEY as string | undefined;
+        if (!apiKey) throw new Error('No API key');
+
+        const openaiMessages = [
+          { role: 'system' as const, content: buildSystemPrompt() },
+          ...currentMessages
+            .filter(m => m.role === 'user' || m.role === 'assistant')
+            .slice(-20)
+            .map(m => ({ role: m.role as 'user' | 'assistant', content: m.message })),
+        ];
+
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({ model: 'gpt-4o-mini', max_tokens: 300, messages: openaiMessages }),
+        });
+
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        reply = data.choices?.[0]?.message?.content || 'Desole, je n\'ai pas pu generer une reponse.';
+      }
+
       setChatMessages(prev => [...prev, { role: 'assistant', message: reply }]);
 
-      // Save assistant message
       supabase.from('chatbot_messages').insert({
         projet_id: projet.id,
         role: 'assistant',
         message: reply,
         session_id: chatSessionId.current,
       } as any);
-    } catch {
-      // Fallback basique si API indisponible
+    } catch (err) {
+      console.error('[Chatbot] Error:', err);
       setChatMessages(prev => [...prev, { role: 'assistant', message: 'Desole, le service est temporairement indisponible. Veuillez contacter directement le cabinet.' }]);
     } finally {
       setChatLoading(false);
