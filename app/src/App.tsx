@@ -9,6 +9,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { DashboardHome } from '@/pages/dashboard/DashboardHome';
 import { ProjetsList } from '@/pages/dashboard/ProjetsList';
 import { NouveauProjet } from '@/pages/dashboard/NouveauProjet';
+import { EditProjet } from '@/pages/dashboard/EditProjet';
 import { CandidatsList } from '@/pages/dashboard/CandidatsList';
 import { MessagesPage } from '@/pages/dashboard/MessagesPage';
 import { ParametresPage } from '@/pages/dashboard/ParametresPage';
@@ -57,6 +58,7 @@ function App() {
               <Route path="/dashboard" element={<DashboardHome />} />
               <Route path="/dashboard/projets" element={<ProjetsList />} />
               <Route path="/dashboard/nouveau-projet" element={<NouveauProjet />} />
+              <Route path="/dashboard/projets/:projetId" element={<EditProjet />} />
               <Route path="/dashboard/candidats" element={<CandidatsList />} />
               <Route path="/dashboard/projets/:projetId/candidats" element={<CandidatsList />} />
               <Route path="/dashboard/messages" element={<MessagesPage />} />
