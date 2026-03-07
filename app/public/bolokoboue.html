@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programme Immobilier Bolokoboué - Étude Notariale</title>
+    <meta name="description" content="Formulaire d'inscription pour l'acquisition de parcelles au lotissement Bolokoboué.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .gradient-text {
+            background: linear-gradient(to right, #292524, #92400e, #1c1917);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, #f5f5f4 0%, #fffbeb 50%, #f5f5f4 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+        }
+        .scroll-reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="antialiased hero-gradient">
+    <!-- Header -->
+    <header class="fixed top-0 w-full z-50 bg-stone-50/95 backdrop-blur-lg border-b border-stone-200/50">
+        <div class="container mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-amber-700 to-amber-900 rounded-xl flex items-center justify-center">
+                    <span class="text-white font-serif font-bold text-xl">B</span>
+                </div>
+                <span class="text-xl font-bold gradient-text hidden sm:block">Programme Immobilier Bolokoboué</span>
+            </div>
+            
+            <div class="hidden xl:flex items-center px-4 py-1.5 bg-amber-100 rounded-full border border-amber-200">
+                <span class="text-amber-900 text-sm font-bold tracking-wide uppercase">Un Gabonais, Un Terrain</span>
+            </div>
+            
+            <nav class="hidden lg:flex items-center gap-8 text-sm font-medium text-stone-600">
+                <a href="#presentation" class="hover:text-amber-800 transition">Le Programme</a>
+                <a href="#parcelles" class="hover:text-amber-800 transition">Parcelles</a>
+                <a href="#conditions" class="hover:text-amber-800 transition">Conditions</a>
+                <a href="#contact" class="hover:text-amber-800 transition">Contact</a>
+            </nav>
+            
+            <button onclick="openForm()" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-amber-700 to-amber-900 hover:from-amber-800 hover:to-amber-950 text-white font-semibold shadow-lg transition text-sm">
+                S'inscrire
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative pt-32 pb-20 px-4 sm:px-6 overflow-hidden">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-amber-200/30 rounded-full blur-3xl -z-10"></div>
+        <div class="absolute bottom-0 left-0 w-72 h-72 bg-stone-200/40 rounded-full blur-3xl -z-10"></div>
+        
+        <div class="container mx-auto max-w-7xl">
+            <!-- Quote Box -->
+            <div class="mb-12 bg-gradient-to-r from-stone-50 to-amber-50 border border-amber-100 rounded-2xl p-6 max-w-4xl scroll-reveal">
+                <div class="flex items-start gap-4">
+                    <div class="w-1 bg-amber-600 h-full rounded-full shrink-0 self-stretch min-h-[80px]"></div>
+                    <div>
+                        <p class="text-stone-700 text-lg leading-relaxed italic">
+                            "Ce projet s'inscrit dans la volonté et l'engagement du Président de la République Gabonaise, Son Excellence <strong>Brice Clotaire OLIGUI NGUEMA</strong>, de faciliter l'accession à la propriété foncière pour l'ensemble des Gabonais.
+                            <br><br>
+                            Par le biais de ces initiatives inédites qui ont vocation à s'étendre sur l'ensemble du territoire, tout Gabonais qui le désire peut désormais être titulaire d'une parcelle de terrain faisant l'objet d'un Titre Foncier."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="flex flex-col gap-8 scroll-reveal">
+                    <div class="space-y-8">
+                        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100 text-sm font-medium text-amber-900">
+                            <i data-lucide="home" class="w-4 h-4"></i>
+                            500 parcelles disponibles (Phase 1)
+                        </div>
+                        
+                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
+                            <span class="gradient-text">Acquérir une parcelle de terrain</span>
+                            <br>
+                            <span class="text-amber-800">dans le lotissement BOLOKOBOUE</span>
+                        </h1>
+                        
+                        <p class="text-xl text-stone-600 leading-relaxed">
+                            Situé à <strong>Akanda, Cap Esterias</strong>, développé par <strong>SCI OVONO ET FILS</strong>, signataire d'une convention de partenariat avec l'État Gabonais (ANUTTC). Bâtissez votre avenir.
+                        </p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                            <button onclick="openForm()" class="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-amber-700 to-amber-900 hover:from-amber-800 hover:to-amber-950 text-white font-bold shadow-xl text-lg transition">
+                                S'inscrire
+                                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                            </button>
+                            <a href="#parcelles" class="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-white border-2 border-stone-300 hover:border-amber-700 text-stone-700 hover:text-amber-800 font-semibold transition">
+                                Découvrir les offres
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-4 text-stone-500">
+                        <i data-lucide="map-pin" class="w-5 h-5 text-amber-700"></i>
+                        <span>Akanda, Cap Esterias</span>
+                        <span class="w-1 h-1 bg-stone-400 rounded-full"></span>
+                        <span>Lieu-dit Bolokoboué</span>
+                    </div>
+                </div>
+                
+                <div class="relative scroll-reveal">
+                    <div class="relative rounded-3xl overflow-hidden shadow-2xl">
+                        <img src="parcelle1.jpg" alt="Vue aérienne du lotissement Bolokoboué" class="w-full h-[500px] object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                    </div>
+                    <!-- Floating badge -->
+                    <div class="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-4 border border-stone-100 animate-float">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                                <i data-lucide="home" class="w-6 h-6 text-amber-700"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-stone-800">500+</p>
+                                <p class="text-sm text-stone-500">Parcelles</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Presentation Section -->
+    <section id="presentation" class="py-24 bg-white">
+        <div class="container mx-auto px-4 sm:px-6 max-w-6xl">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-4xl lg:text-5xl font-bold text-stone-800 mb-6">Pourquoi Investir à Bolokoboué ?</h2>
+                <p class="text-xl text-stone-600 max-w-3xl mx-auto">Emplacement stratégique, parcelles viabilisées et accompagnement notarial de confiance.</p>
+            </div>
+            
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Card 1 -->
+                <div class="bg-gradient-to-br from-stone-50 to-amber-50 p-8 rounded-3xl border border-stone-200 card-hover h-full flex flex-col scroll-reveal">
+                    <div class="w-14 h-14 bg-gradient-to-br from-amber-700 to-amber-900 rounded-2xl flex items-center justify-center mb-6">
+                        <i data-lucide="map-pin" class="w-7 h-7 text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-stone-800 mb-3">Emplacement Premium</h3>
+                    <p class="text-stone-600">Proximité commodités et axes routiers</p>
+                </div>
+                
+                <!-- Card 2 -->
+                <div class="bg-gradient-to-br from-stone-50 to-amber-50 p-8 rounded-3xl border border-stone-200 card-hover h-full flex flex-col scroll-reveal" style="transition-delay: 100ms;">
+                    <div class="w-14 h-14 bg-gradient-to-br from-amber-700 to-amber-900 rounded-2xl flex items-center justify-center mb-6">
+                        <i data-lucide="shield-check" class="w-7 h-7 text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-stone-800 mb-3">Sécurité Juridique</h3>
+                    <p class="text-stone-600">Titre Foncier remis en fin de procédure</p>
+                </div>
+                
+                <!-- Card 3 -->
+                <div class="bg-gradient-to-br from-stone-50 to-amber-50 p-8 rounded-3xl border border-stone-200 card-hover h-full flex flex-col scroll-reveal" style="transition-delay: 200ms;">
+                    <div class="w-14 h-14 bg-gradient-to-br from-amber-700 to-amber-900 rounded-2xl flex items-center justify-center mb-6">
+                        <i data-lucide="trending-up" class="w-7 h-7 text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-stone-800 mb-3">Valorisation</h3>
+                    <p class="text-stone-600">Zone en plein développement</p>
+                </div>
+                
+                <!-- Card 4 -->
+                <div class="bg-gradient-to-br from-stone-50 to-amber-50 p-8 rounded-3xl border border-stone-200 card-hover h-full flex flex-col scroll-reveal" style="transition-delay: 300ms;">
+                    <div class="w-14 h-14 bg-gradient-to-br from-amber-700 to-amber-900 rounded-2xl flex items-center justify-center mb-6">
+                        <i data-lucide="scale" class="w-7 h-7 text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-stone-800 mb-3">Accompagnement</h3>
+                    <p class="text-stone-600">Procédure d'acquisition sécurisée par l'Office Notarial</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Parcelles Section -->
+    <section id="parcelles" class="py-24 hero-gradient">
+        <div class="container mx-auto px-4 sm:px-6 max-w-6xl">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-4xl lg:text-5xl font-bold text-stone-800 mb-6">Choisissez Votre Parcelle</h2>
+                <p class="text-xl text-stone-600 max-w-3xl mx-auto">Deux superficies adaptées : résidence familiale ou projet d'envergure.</p>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Parcelle Standard -->
+                <div class="bg-white rounded-3xl shadow-xl border border-stone-200 overflow-hidden card-hover scroll-reveal">
+                    <div class="relative h-64">
+                        <img src="parcelle2.jpg" alt="Parcelle Standard 525m²" class="w-full h-full object-cover">
+                        <div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-4 py-2 rounded-full">
+                            <span class="text-2xl font-bold text-stone-800">525 m²</span>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <h3 class="text-2xl font-bold text-stone-800 mb-2">Parcelle Standard</h3>
+                        <p class="text-stone-500 mb-6">Résidence familiale</p>
+                        
+                        <div class="mb-6">
+                            <p class="text-sm text-stone-500 mb-1">Prix Tout Frais Inclus</p>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-4xl font-bold text-amber-700">5 244 691</span>
+                                <span class="text-xl text-stone-600">FCFA</span>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3 mb-8">
+                            <p class="text-sm font-medium text-stone-700">Inclus :</p>
+                            <ul class="space-y-2">
+                                <li class="flex items-center gap-2 text-stone-600">
+                                    <i data-lucide="check" class="w-4 h-4 text-amber-600"></i>
+                                    Droits d'enregistrement
+                                </li>
+                                <li class="flex items-center gap-2 text-stone-600">
+                                    <i data-lucide="check" class="w-4 h-4 text-amber-600"></i>
+                                    Taxe de transcription
+                                </li>
+                                <li class="flex items-center gap-2 text-stone-600">
+                                    <i data-lucide="check" class="w-4 h-4 text-amber-600"></i>
+                                    Frais et honoraires notariaux
+                                </li>
+                                <li class="flex items-center gap-2 text-stone-600">
+                                    <i data-lucide="check" class="w-4 h-4 text-amber-600"></i>
+                                    Régularisation ANUTTC incluse
+                                </li>
+                                <li class="flex items-center gap-2 text-stone-600">
+                                    <i data-lucide="check" class="w-4 h-4 text-amber-600"></i>
+                                    Bornage et viabilisation
+                                </li>
+                                <li class="flex items-center gap-2 text-stone-600">
+                                    <i data-lucide="check" class="w-4 h-4 text-amber-600"></i>
+                                    Titre foncier sécurisé
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <button onclick="selectParcelle('525')" class="block w-full py-4 text-center rounded-full bg-gradient-to-r from-amber-700 to-amber-900 hover:from-amber-800 hover:to-amber-950 text-white font-bold transition">
+                            S'inscrire
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Parcelle Premium -->
+                <div class="bg-white rounded-3xl shadow-xl border-2 border-amber-400 overflow-hidden card-hover scroll-reveal relative" style="transition-delay: 100ms;">
+                    <div class="absolute top-4 right-4 bg-amber-500 text-white px-3 py-1 rounded-full text-sm font-bold z-10">
+                        PREMIUM
+                    </div>
+                    <div class="relative h-64">
+                        <img src="parcelle1.jpg" alt="Grande Parcelle 1050m²" class="w-full h-full object-cover">
+                        <div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-4 py-2 rounded-full">
+                            <span class="text-2xl font-bold text-stone-800">1050 m²</span>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <h3 class="text-2xl font-bold text-stone-800 mb-2">Grande Parcelle</h3>
+                        <p class="text-stone-500 mb-6">Projets d'envergure</p>
+                        
+                        <div class="mb-6">
+                            <p class="text-sm text-stone-500 mb-1">Prix Tout Frais Inclus</p>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-4xl font-bold text-amber-700">9 455 364</span>
+                                <span class="text-xl text-stone-600">FCFA</span>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3 mb-8">
+                            <p class="text-sm font-medium text-stone-700">Inclus :</p>
+                            <ul class="space-y-2">
+                                <li class="flex items-center gap-2 text-stone-600">
+                                    <i data-lucide="check" class="w-4 h-4 text-amber-600"></i>
+                                    Droits d'enregistrement
+                                </li>
+                                <li class="flex items-center gap-2 text-stone-600">
+                                    <i data-lucide="check" class="w-4 h-4 text-amber-600"></i>
+                                    Taxe de transcription
+                                </li>
+                                <li class="flex items-center gap-2 text-stone-600">
+                                    <i data-lucide="check" class="w-4 h-4 text-amber-600"></i>
+                                    Frais et honoraires notariaux
+                                </li>
+                                <li class="flex items-center gap-2 text-stone-600">
+                                    <i data-lucide="check" class="w-4 h-4 text-amber-600"></i>
+                                    Régularisation ANUTTC incluse
+                                </li>
+                                <li class="flex items-center gap-2 text-stone-600">
+                                    <i data-lucide="check" class="w-4 h-4 text-amber-600"></i>
+                                    Bornage et viabilisation
+                                </li>
+                                <li class="flex items-center gap-2 text-stone-600">
+                                    <i data-lucide="check" class="w-4 h-4 text-amber-600"></i>
+                                    Titre foncier sécurisé
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <button onclick="selectParcelle('1050')" class="block w-full py-4 text-center rounded-full bg-gradient-to-r from-amber-700 to-amber-900 hover:from-amber-800 hover:to-amber-950 text-white font-bold transition">
+                            S'inscrire
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Conditions Section -->
+    <section id="conditions" class="py-24 bg-white">
+        <div class="container mx-auto px-4 sm:px-6 max-w-6xl">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-4xl lg:text-5xl font-bold text-stone-800 mb-6">Comprendre Votre Investissement</h2>
+                <p class="text-xl text-stone-600 max-w-3xl mx-auto">Transparence et sécurité à chaque étape de votre acquisition.</p>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-12 items-start">
+                <div class="scroll-reveal">
+                    <div class="bg-gradient-to-br from-amber-50 to-stone-50 rounded-3xl p-8 border border-amber-100 mb-8">
+                        <h3 class="text-2xl font-bold text-stone-800 mb-4">Une Ville Nouvelle</h3>
+                        <p class="text-stone-600 leading-relaxed">
+                            La livraison de ces <strong class="text-amber-700">500 parcelles</strong> participe à la création d'un lotissement moderne, voire d'une véritable ville nouvelle dotée de toutes les commodités nécessaires.
+                        </p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-bold text-stone-800 mb-4">Conditions d'Acquisition</h4>
+                        <div class="flex items-start gap-4">
+                            <div class="w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                                <i data-lucide="check" class="w-4 h-4 text-amber-700"></i>
+                            </div>
+                            <p class="text-stone-600">Prix tout frais inclus (Enregistrement, Transcription, Notaire)</p>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                                <i data-lucide="check" class="w-4 h-4 text-amber-700"></i>
+                            </div>
+                            <p class="text-stone-600">Régularisation ANUTTC incluse</p>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                                <i data-lucide="check" class="w-4 h-4 text-amber-700"></i>
+                            </div>
+                            <p class="text-stone-600">Documents requis pour finaliser</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="scroll-reveal" style="transition-delay: 100ms;">
+                    <div class="bg-white rounded-3xl shadow-lg border border-stone-200 p-8">
+                        <h4 class="text-xl font-bold text-stone-800 mb-6 flex items-center gap-3">
+                            <i data-lucide="file-text" class="w-6 h-6 text-amber-700"></i>
+                            Pièces à Fournir
+                        </h4>
+                        <p class="text-sm text-stone-500 mb-6">Documents requis en format numérique :</p>
+                        <p class="text-xs text-stone-400 mb-6 italic">* En remplissant le formulaire en ligne, vous n'avez pas besoin de joindre le formulaire d'état civil.</p>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-4 p-4 bg-stone-50 rounded-xl">
+                                <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center shrink-0">
+                                    <span class="font-bold text-amber-700">1</span>
+                                </div>
+                                <span class="text-stone-700">Acte de naissance légalisé</span>
+                            </div>
+                            <div class="flex items-center gap-4 p-4 bg-stone-50 rounded-xl">
+                                <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center shrink-0">
+                                    <span class="font-bold text-amber-700">2</span>
+                                </div>
+                                <span class="text-stone-700">Pièce d'identité</span>
+                            </div>
+                            <div class="flex items-center gap-4 p-4 bg-stone-50 rounded-xl">
+                                <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center shrink-0">
+                                    <span class="font-bold text-amber-700">3</span>
+                                </div>
+                                <span class="text-stone-700">Acte de mariage (si concerné)</span>
+                            </div>
+                            <div class="flex items-center gap-4 p-4 bg-stone-50 rounded-xl">
+                                <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center shrink-0">
+                                    <span class="font-bold text-amber-700">4</span>
+                                </div>
+                                <span class="text-stone-700">Livret de famille (si nécessaire)</span>
+                            </div>
+                        </div>
+                        
+                        <button onclick="openForm()" class="mt-8 block w-full py-4 text-center rounded-full bg-stone-800 hover:bg-stone-900 text-white font-bold transition">
+                            Commencer mon inscription
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-24 hero-gradient">
+        <div class="container mx-auto px-4 sm:px-6 max-w-6xl">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-4xl lg:text-5xl font-bold text-stone-800 mb-6">Contactez-Nous</h2>
+                <p class="text-xl text-stone-600 max-w-3xl mx-auto">Notre office Notarial vous accompagne dans votre projet immobilier</p>
+                <p class="text-stone-500 mt-4">Pour vous inscrire contactez l'office Notarial désigné à cet effet.</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Email -->
+                <div class="bg-white rounded-2xl shadow-lg border border-stone-200 p-6 text-center card-hover scroll-reveal">
+                    <div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="mail" class="w-7 h-7 text-amber-700"></i>
+                    </div>
+                    <h4 class="font-bold text-stone-800 mb-2">Email</h4>
+                    <a href="mailto:lotisbolokoboue@etudeogoula241.com" class="text-amber-700 hover:text-amber-800 text-sm break-all">
+                        lotisbolokoboue@etudeogoula241.com
+                    </a>
+                </div>
+                
+                <!-- Téléphone -->
+                <div class="bg-white rounded-2xl shadow-lg border border-stone-200 p-6 text-center card-hover scroll-reveal" style="transition-delay: 100ms;">
+                    <div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="phone" class="w-7 h-7 text-amber-700"></i>
+                    </div>
+                    <h4 class="font-bold text-stone-800 mb-2">Téléphone</h4>
+                    <a href="tel:+24162579172" class="text-amber-700 hover:text-amber-800">
+                        +241 62 57 91 72
+                    </a>
+                </div>
+                
+                <!-- Adresse -->
+                <div class="bg-white rounded-2xl shadow-lg border border-stone-200 p-6 text-center card-hover scroll-reveal" style="transition-delay: 200ms;">
+                    <div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="map-pin" class="w-7 h-7 text-amber-700"></i>
+                    </div>
+                    <h4 class="font-bold text-stone-800 mb-2">Adresse</h4>
+                    <p class="text-stone-600 text-sm">
+                        Boulevard de la Nation<br>
+                        Immeuble Hollando, 6ème étage<br>
+                        LIBREVILLE, GABON
+                    </p>
+                </div>
+                
+                <!-- Horaires -->
+                <div class="bg-white rounded-2xl shadow-lg border border-stone-200 p-6 text-center card-hover scroll-reveal" style="transition-delay: 300ms;">
+                    <div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="clock" class="w-7 h-7 text-amber-700"></i>
+                    </div>
+                    <h4 class="font-bold text-stone-800 mb-2">Horaires</h4>
+                    <p class="text-stone-600 text-sm">
+                        Lundi au Vendredi<br>
+                        7h30 - 15h30
+                    </p>
+                </div>
+            </div>
+            
+            <div class="mt-12 text-center scroll-reveal">
+                <button onclick="openForm()" class="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-amber-700 to-amber-900 hover:from-amber-800 hover:to-amber-950 text-white font-bold shadow-xl text-lg transition">
+                    Démarrer mon inscription
+                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-stone-900 text-white py-12">
+        <div class="container mx-auto px-4 sm:px-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-amber-600 to-amber-800 rounded-xl flex items-center justify-center">
+                        <span class="text-white font-serif font-bold text-xl">B</span>
+                    </div>
+                    <span class="text-xl font-bold">Programme Immobilier Bolokoboué</span>
+                </div>
+                
+                <a href="/dashboard" class="text-stone-400 hover:text-white transition flex items-center gap-2">
+                    Accès Notaire
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+            
+            <div class="mt-8 pt-8 border-t border-stone-800 text-center text-stone-500 text-sm">
+                © 2025 Programme Immobilier Bolokoboué. Tous droits réservés.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Chatbot Button -->
+    <div class="fixed bottom-6 right-6 z-50">
+        <button id="chatbotBtn" onclick="toggleChat()" class="w-14 h-14 bg-gradient-to-r from-amber-700 to-amber-900 text-white rounded-full shadow-lg flex items-center justify-center hover:from-amber-800 hover:to-amber-950 transition-colors">
+            <i data-lucide="message-circle" class="w-6 h-6"></i>
+        </button>
+        
+        <!-- Chat Window -->
+        <div id="chatWindow" class="hidden w-80 bg-white rounded-2xl shadow-2xl overflow-hidden border border-stone-200 mb-4">
+            <div class="bg-gradient-to-r from-amber-700 to-amber-900 text-white p-4 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="message-circle" class="w-5 h-5"></i>
+                    <span class="font-medium">Assistant virtuel</span>
+                </div>
+                <button onclick="toggleChat()">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="chatMessages" class="h-80 overflow-y-auto p-4 space-y-3">
+                <div class="p-3 rounded-lg text-sm bg-stone-100 text-stone-700 mr-8">
+                    Bonjour ! Je suis là pour vous aider avec votre candidature au Programme Bolokoboué. Comment puis-je vous assister ?
+                </div>
+            </div>
+            <div class="p-3 border-t flex gap-2">
+                <input type="text" id="chatInput" placeholder="Écrivez votre message..." class="flex-1 px-3 py-2 border border-stone-300 rounded-lg text-sm" onkeypress="if(event.key==='Enter') sendMessage()">
+                <button onclick="sendMessage()" class="px-3 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-lg">
+                    <i data-lucide="send" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulaire Modal -->
+    <div id="formModal" class="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b border-stone-200 p-6 flex items-center justify-between">
+                <h2 class="text-2xl font-bold text-stone-800">Formulaire d'inscription - Bolokoboué</h2>
+                <button onclick="closeForm()" class="p-2 hover:bg-stone-100 rounded-full transition">
+                    <i data-lucide="x" class="w-6 h-6 text-stone-500"></i>
+                </button>
+            </div>
+            
+            <div id="formContent" class="p-6">
+                <!-- Progress bar -->
+                <div class="flex items-center gap-2 mb-8">
+                    <div id="step1" class="flex-1 h-2 rounded-full bg-amber-600"></div>
+                    <div id="step2" class="flex-1 h-2 rounded-full bg-stone-200"></div>
+                    <div id="step3" class="flex-1 h-2 rounded-full bg-stone-200"></div>
+                    <div id="step4" class="flex-1 h-2 rounded-full bg-stone-200"></div>
+                </div>
+                
+                <!-- Step 1: Personal Info -->
+                <div id="formStep1" class="space-y-4">
+                    <h3 class="font-semibold text-lg flex items-center gap-2">
+                        <i data-lucide="user" class="w-5 h-5 text-amber-600"></i>
+                        Informations personnelles
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-stone-700 mb-1">Nom *</label>
+                            <input type="text" id="nom" class="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="Votre nom">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-stone-700 mb-1">Prénom *</label>
+                            <input type="text" id="prenom" class="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="Votre prénom">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-stone-700 mb-1">Email *</label>
+                        <input type="email" id="email" class="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="votre@email.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-stone-700 mb-1">Téléphone *</label>
+                        <input type="tel" id="telephone" class="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="+241 XX XX XX XX">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-stone-700 mb-1">Date de naissance</label>
+                            <input type="date" id="dateNaissance" class="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-stone-700 mb-1">Lieu de naissance</label>
+                            <input type="text" id="lieuNaissance" class="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="Libreville">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Address -->
+                <div id="formStep2" class="space-y-4 hidden">
+                    <h3 class="font-semibold text-lg flex items-center gap-2">
+                        <i data-lucide="map-pin" class="w-5 h-5 text-amber-600"></i>
+                        Adresse et situation
+                    </h3>
+                    <div>
+                        <label class="block text-sm font-medium text-stone-700 mb-1">Adresse</label>
+                        <input type="text" id="adresse" class="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="Votre adresse actuelle">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-stone-700 mb-1">Ville</label>
+                            <input type="text" id="ville" class="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="Libreville">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-stone-700 mb-1">Code postal</label>
+                            <input type="text" id="codePostal" class="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="BP XXXX">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-stone-700 mb-1">Profession</label>
+                        <input type="text" id="profession" class="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="Votre profession">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-stone-700 mb-1">Employeur</label>
+                        <input type="text" id="employeur" class="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="Nom de votre employeur">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-stone-700 mb-1">Revenus mensuels nets (FCFA)</label>
+                        <input type="number" id="revenus" class="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="500000">
+                    </div>
+                </div>
+                
+                <!-- Step 3: Parcelle Selection -->
+                <div id="formStep3" class="space-y-4 hidden">
+                    <h3 class="font-semibold text-lg flex items-center gap-2">
+                        <i data-lucide="home" class="w-5 h-5 text-amber-600"></i>
+                        Choix de la parcelle
+                    </h3>
+                    <div class="space-y-4">
+                        <div onclick="selectParcelleForm('525')" id="parcelle525" class="p-6 border-2 border-amber-600 bg-amber-50 rounded-xl cursor-pointer transition">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="font-bold text-lg">Parcelle Standard</p>
+                                    <p class="text-stone-500">525 m² - Résidence familiale</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-2xl font-bold text-amber-700">5 244 691</p>
+                                    <p class="text-sm text-stone-500">FCFA</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div onclick="selectParcelleForm('1050')" id="parcelle1050" class="p-6 border-2 border-stone-200 hover:border-amber-300 rounded-xl cursor-pointer transition">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="font-bold text-lg">Grande Parcelle <span class="text-amber-600 text-sm">PREMIUM</span></p>
+                                    <p class="text-stone-500">1050 m² - Projets d'envergure</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-2xl font-bold text-amber-700">9 455 364</p>
+                                    <p class="text-sm text-stone-500">FCFA</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="parcelleChoisie" value="525">
+                </div>
+                
+                <!-- Step 4: Documents -->
+                <div id="formStep4" class="space-y-4 hidden">
+                    <h3 class="font-semibold text-lg flex items-center gap-2">
+                        <i data-lucide="upload" class="w-5 h-5 text-amber-600"></i>
+                        Documents à fournir
+                    </h3>
+                    <p class="text-sm text-stone-500">Téléchargez vos documents en format PDF ou image :</p>
+                    
+                    <div class="space-y-4">
+                        <div class="p-4 border rounded-xl">
+                            <p class="font-medium mb-2">Acte de naissance légalisé</p>
+                            <input type="file" accept=".pdf,.jpg,.jpeg,.png" class="w-full text-sm">
+                        </div>
+                        <div class="p-4 border rounded-xl">
+                            <p class="font-medium mb-2">Pièce d'identité</p>
+                            <input type="file" accept=".pdf,.jpg,.jpeg,.png" class="w-full text-sm">
+                        </div>
+                        <div class="p-4 border rounded-xl">
+                            <p class="font-medium mb-2">Acte de mariage (si concerné) <span class="text-stone-400 text-xs">Optionnel</span></p>
+                            <input type="file" accept=".pdf,.jpg,.jpeg,.png" class="w-full text-sm">
+                        </div>
+                        <div class="p-4 border rounded-xl">
+                            <p class="font-medium mb-2">Livret de famille (si nécessaire) <span class="text-stone-400 text-xs">Optionnel</span></p>
+                            <input type="file" accept=".pdf,.jpg,.jpeg,.png" class="w-full text-sm">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Success Message -->
+                <div id="formSuccess" class="hidden text-center py-8">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="check-circle" class="w-8 h-8 text-green-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-stone-800 mb-2">Inscription envoyée avec succès !</h3>
+                    <p class="text-stone-500">Notre office notarial vous contactera dans les plus brefs délais.</p>
+                    <button onclick="closeForm()" class="mt-6 px-6 py-3 bg-amber-700 hover:bg-amber-800 text-white rounded-full font-medium transition">
+                        Fermer
+                    </button>
+                </div>
+                
+                <!-- Navigation Buttons -->
+                <div id="formNav" class="flex justify-between pt-6 border-t mt-6">
+                    <button onclick="prevStep()" id="btnPrev" class="px-6 py-3 border border-stone-300 rounded-full text-stone-700 hover:bg-stone-50 transition hidden">
+                        Précédent
+                    </button>
+                    <div class="flex-1"></div>
+                    <button onclick="nextStep()" id="btnNext" class="px-6 py-3 bg-amber-700 hover:bg-amber-800 text-white rounded-full font-medium transition">
+                        Suivant
+                    </button>
+                    <button onclick="submitForm()" id="btnSubmit" class="hidden px-6 py-3 bg-gradient-to-r from-amber-700 to-amber-900 hover:from-amber-800 hover:to-amber-950 text-white rounded-full font-medium transition">
+                        Envoyer mon inscription
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Chatbot functions
+        function toggleChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            chatWindow.classList.toggle('hidden');
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const messages = document.getElementById('chatMessages');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            messages.innerHTML += `<div class="p-3 rounded-lg text-sm bg-amber-600 text-white ml-8">${message}</div>`;
+            input.value = '';
+            messages.scrollTop = messages.scrollHeight;
+            
+            // Bot response
+            setTimeout(() => {
+                let response = '';
+                const lowerMsg = message.toLowerCase();
+                
+                if (lowerMsg.includes('prix') || lowerMsg.includes('cout') || lowerMsg.includes('fcfa')) {
+                    response = 'Nous proposons deux types de parcelles :\n• Parcelle Standard (525 m²) : 5 244 691 FCFA\n• Grande Parcelle (1050 m²) : 9 455 364 FCFA\nLes prix sont tout frais inclus.';
+                } else if (lowerMsg.includes('document') || lowerMsg.includes('piece')) {
+                    response = 'Les documents requis sont :\n1. Acte de naissance légalisé\n2. Pièce d\'identité\n3. Acte de mariage (si concerné)\n4. Livret de famille (si nécessaire)';
+                } else if (lowerMsg.includes('localisation') || lowerMsg.includes('adresse') || lowerMsg.includes('ou')) {
+                    response = 'Le lotissement Bolokoboué est situé à Akanda, Cap Esterias, au Lieu-dit Bolokoboué.';
+                } else if (lowerMsg.includes('contact') || lowerMsg.includes('telephone')) {
+                    response = 'Vous pouvez nous contacter :\n• Email : lotisbolokoboue@etudeogoula241.com\n• Téléphone : +241 62 57 91 72';
+                } else {
+                    response = 'Je comprends. Pour plus d\'informations, je vous invite à remplir le formulaire de candidature ou à contacter notre office notarial au +241 62 57 91 72.';
+                }
+                
+                messages.innerHTML += `<div class="p-3 rounded-lg text-sm bg-stone-100 text-stone-700 mr-8 whitespace-pre-line">${response}</div>`;
+                messages.scrollTop = messages.scrollHeight;
+            }, 500);
+        }
+        
+        // Form functions
+        let currentStep = 1;
+        
+        function openForm() {
+            document.getElementById('formModal').classList.remove('hidden');
+            document.getElementById('formModal').classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeForm() {
+            document.getElementById('formModal').classList.add('hidden');
+            document.getElementById('formModal').classList.remove('flex');
+            document.body.style.overflow = '';
+            resetForm();
+        }
+        
+        function selectParcelle(size) {
+            document.getElementById('parcelleChoisie').value = size;
+            openForm();
+        }
+        
+        function selectParcelleForm(size) {
+            document.getElementById('parcelleChoisie').value = size;
+            document.getElementById('parcelle525').className = size === '525' 
+                ? 'p-6 border-2 border-amber-600 bg-amber-50 rounded-xl cursor-pointer transition'
+                : 'p-6 border-2 border-stone-200 hover:border-amber-300 rounded-xl cursor-pointer transition';
+            document.getElementById('parcelle1050').className = size === '1050'
+                ? 'p-6 border-2 border-amber-600 bg-amber-50 rounded-xl cursor-pointer transition'
+                : 'p-6 border-2 border-stone-200 hover:border-amber-300 rounded-xl cursor-pointer transition';
+        }
+        
+        function updateProgress() {
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById('step' + i).className = i <= currentStep 
+                    ? 'flex-1 h-2 rounded-full bg-amber-600'
+                    : 'flex-1 h-2 rounded-full bg-stone-200';
+            }
+        }
+        
+        function showStep(step) {
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById('formStep' + i).classList.add('hidden');
+            }
+            document.getElementById('formStep' + step).classList.remove('hidden');
+            
+            document.getElementById('btnPrev').classList.toggle('hidden', step === 1);
+            document.getElementById('btnNext').classList.toggle('hidden', step === 4);
+            document.getElementById('btnSubmit').classList.toggle('hidden', step !== 4);
+        }
+        
+        function nextStep() {
+            if (currentStep < 4) {
+                currentStep++;
+                updateProgress();
+                showStep(currentStep);
+            }
+        }
+        
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateProgress();
+                showStep(currentStep);
+            }
+        }
+        
+        function submitForm() {
+            document.getElementById('formContent').classList.add('hidden');
+            document.getElementById('formSuccess').classList.remove('hidden');
+        }
+        
+        function resetForm() {
+            currentStep = 1;
+            updateProgress();
+            showStep(1);
+            document.getElementById('formContent').classList.remove('hidden');
+            document.getElementById('formSuccess').classList.add('hidden');
+            // Reset inputs
+            document.querySelectorAll('input').forEach(input => {
+                if (input.type !== 'hidden') input.value = '';
+            });
+        }
+        
+        // Scroll reveal animation
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('.scroll-reveal').forEach(el => {
+            observer.observe(el);
+        });
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

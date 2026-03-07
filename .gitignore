@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+
+# Environment
+.env
+*.local
+
+# Netlify
+.netlify/
+
+# IDE
+.windsurf/
+.vscode/
+
+# OS
+.DS_Store
+
+# OpenMemory
+openmemory.md
