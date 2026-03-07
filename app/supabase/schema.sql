@@ -334,31 +334,30 @@ ALTER TABLE chatbot_configs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE chatbot_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
 
--- Politiques pour les cabinets (lecture seule pour les utilisateurs authentifiés du cabinet)
-CREATE POLICY cabinets_policy ON cabinets
-    FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM utilisateurs 
-            WHERE utilisateurs.cabinet_id = cabinets.id 
-            AND utilisateurs.id = auth.uid()
-        )
-    );
+-- Fonction helper pour eviter la recursion RLS (SECURITY DEFINER contourne les policies)
+CREATE OR REPLACE FUNCTION get_user_cabinet_id(user_id UUID)
+RETURNS UUID
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT cabinet_id FROM utilisateurs WHERE id = user_id;
+$$;
 
--- Politiques pour les utilisateurs
-CREATE POLICY utilisateurs_policy ON utilisateurs
-    FOR ALL USING (
-        cabinet_id IN (
-            SELECT cabinet_id FROM utilisateurs WHERE id = auth.uid()
-        )
-    );
+-- Politiques pour les cabinets
+CREATE POLICY cabinets_select ON cabinets
+    FOR SELECT USING (id = get_user_cabinet_id(auth.uid()));
+
+-- Politiques pour les utilisateurs (lecture de son propre profil + collegues du cabinet)
+CREATE POLICY utilisateurs_select_own ON utilisateurs
+    FOR SELECT USING (id = auth.uid());
+
+CREATE POLICY utilisateurs_cabinet_read ON utilisateurs
+    FOR SELECT USING (cabinet_id = get_user_cabinet_id(auth.uid()));
 
 -- Politiques pour les projets
-CREATE POLICY projets_policy ON projets
-    FOR ALL USING (
-        cabinet_id IN (
-            SELECT cabinet_id FROM utilisateurs WHERE id = auth.uid()
-        )
-    );
+CREATE POLICY projets_cabinet_all ON projets
+    FOR ALL USING (cabinet_id = get_user_cabinet_id(auth.uid()));
 
 -- Politiques pour les candidats (lecture publique pour les landing pages)
 CREATE POLICY candidats_insert_policy ON candidats
