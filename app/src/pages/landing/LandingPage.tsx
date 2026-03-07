@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { 
-  MapPin, 
-  Maximize, 
-  BedDouble, 
+import {
+  MapPin,
+  Maximize,
+  BedDouble,
   Home,
   CheckCircle,
   FileText,
@@ -13,7 +13,13 @@ import {
   ChevronRight,
   Phone,
   Mail,
-  Trees
+  Trees,
+  ArrowRight,
+  ShieldCheck,
+  Clock,
+  TrendingUp,
+  ChevronDown,
+  ZoomIn,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,17 +32,39 @@ import { supabase } from '@/lib/supabase';
 import { formatFCFA } from '@/lib/formatCurrency';
 import type { DocumentRequis, DocumentFourni } from '@/types';
 
+function getThemeColors(projet: any): { primary: string; secondary: string } {
+  const meta = projet?.metadata as Record<string, any> | null | undefined;
+  return {
+    primary: meta?.couleur_primaire || '#1e40af',
+    secondary: meta?.couleur_secondaire || '#047857',
+  };
+}
+
 export function LandingPage() {
   const { slug } = useParams<{ slug: string }>();
   const { projet, loading: projetLoading } = useProjetBySlug(slug || '');
   const { config: chatbotConfig } = useChatbotConfig(projet?.id);
   const { createCandidat, loading: creatingCandidat } = useCreateCandidat();
 
+  const colors = useMemo(() => getThemeColors(projet), [projet]);
+
+  // Scroll state pour le header
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // Chatbot
   const [chatOpen, setChatOpen] = useState(false);
-  const [chatMessages, setChatMessages] = useState<{role: 'user' | 'assistant', message: string}[]>([]);
+  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; message: string }[]>([]);
   const [chatInput, setChatInput] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Lightbox galerie
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   // Formulaire candidature
   const [formOpen, setFormOpen] = useState(false);
@@ -85,35 +113,33 @@ export function LandingPage() {
     setChatMessages(prev => [...prev, { role: 'user', message: userMessage }]);
     setChatInput('');
 
-    // Simple chatbot responses based on FAQ
     let response = '';
     const lowerMessage = userMessage.toLowerCase();
 
-    if (lowerMessage.includes('document') || lowerMessage.includes('pièce')) {
+    if (lowerMessage.includes('document') || lowerMessage.includes('piece')) {
       const docs = projet.documents_requis?.map((d: DocumentRequis) => d.nom).join(', ');
-      response = `Les documents requis sont : ${docs || 'Pièce d\'identité, justificatif de domicile, bulletins de salaire, avis d\'imposition'}`;
-    } else if (lowerMessage.includes('prix') || lowerMessage.includes('coût')) {
+      response = `Les documents requis sont : ${docs || 'Piece d\'identite, justificatif de domicile, bulletins de salaire, avis d\'imposition'}`;
+    } else if (lowerMessage.includes('prix') || lowerMessage.includes('cout')) {
       response = `Le prix de ce bien est de ${projet.prix ? formatFCFA(projet.prix) : 'non renseigne'}.`;
-    } else if (lowerMessage.includes('surface') || lowerMessage.includes('m²')) {
-      response = `La surface est de ${projet.surface} m².`;
-    } else if (lowerMessage.includes('délai') || lowerMessage.includes('temps')) {
-      response = 'Le délai de traitement des candidatures est généralement de 2 à 3 semaines.';
+    } else if (lowerMessage.includes('surface') || lowerMessage.includes('m2')) {
+      response = `La surface est de ${projet.surface} m2.`;
+    } else if (lowerMessage.includes('delai') || lowerMessage.includes('temps')) {
+      response = 'Le delai de traitement des candidatures est generalement de 2 a 3 semaines.';
     } else if (lowerMessage.includes('contact') || lowerMessage.includes('joindre')) {
-      response = `Vous pouvez nous contacter par email à ${projet.contact_email} ou par téléphone au ${projet.contact_phone}.`;
-    } else if (lowerMessage.includes('condition') || lowerMessage.includes('éligible')) {
+      response = `Vous pouvez nous contacter par email a ${projet.contact_email} ou par telephone au ${projet.contact_phone}.`;
+    } else if (lowerMessage.includes('condition') || lowerMessage.includes('eligible')) {
       const conditions = projet.conditions_eligibilite?.join(', ');
-      response = conditions 
-        ? `Les conditions d'éligibilité sont : ${conditions}`
-        : 'Les conditions d\'éligibilité incluent des revenus stables et un apport personnel.';
+      response = conditions
+        ? `Les conditions d'eligibilite sont : ${conditions}`
+        : 'Les conditions d\'eligibilite incluent des revenus stables et un apport personnel.';
     } else {
-      response = 'Je comprends. Pour plus d\'informations, je vous invite à remplir le formulaire de candidature ou à contacter directement le cabinet.';
+      response = 'Je comprends. Pour plus d\'informations, je vous invite a remplir le formulaire de candidature ou a contacter directement le cabinet.';
     }
 
     setTimeout(() => {
       setChatMessages(prev => [...prev, { role: 'assistant', message: response }]);
     }, 500);
 
-    // Save message to database
     await supabase.from('chatbot_messages').insert({
       projet_id: projet.id,
       role: 'user',
@@ -126,19 +152,18 @@ export function LandingPage() {
     if (!projet) return;
 
     try {
-      // Upload documents
       const documentsFournis: DocumentFourni[] = [];
       for (const [docId, file] of Object.entries(documents)) {
         const path = `documents/${projet.id}/${Date.now()}_${file.name}`;
         const { data, error } = await supabase.storage
           .from('candidats')
           .upload(path, file);
-        
+
         if (!error && data) {
-          const { data: { publicUrl } } = supabase.storage
-            .from('candidats')
-            .getPublicUrl(data.path);
-          
+          const {
+            data: { publicUrl },
+          } = supabase.storage.from('candidats').getPublicUrl(data.path);
+
           documentsFournis.push({
             id: Date.now().toString(),
             type_document_id: docId,
@@ -151,7 +176,6 @@ export function LandingPage() {
         }
       }
 
-      // Create candidat
       const candidatData = {
         projet_id: projet.id,
         nom: formData.nom,
@@ -185,112 +209,221 @@ export function LandingPage() {
     }
   };
 
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   if (projetLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <div className="animate-spin w-10 h-10 border-4 border-t-transparent rounded-full mx-auto mb-4" style={{ borderColor: '#1e40af', borderTopColor: 'transparent' }} />
+          <p className="text-slate-500 text-sm">Chargement du projet...</p>
+        </div>
       </div>
     );
   }
 
   if (!projet) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Projet non trouvé</h1>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Home className="w-10 h-10 text-slate-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Projet non trouve</h1>
           <p className="text-slate-500">Ce programme immobilier n'existe pas ou n'est plus disponible.</p>
         </div>
       </div>
     );
   }
 
+  const typeBienLabel =
+    { terrain: 'Terrain', villa: 'Villa', maison: 'Maison', appartement: 'Appartement', commerce: 'Local commercial', immeuble: 'Immeuble', autre: 'Autre' }[
+      projet.type_bien
+    ] || projet.type_bien;
+
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+      {/* ========== HEADER FIXE ========== */}
+      <header
+        className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+          scrolled ? 'bg-white/95 backdrop-blur-lg shadow-sm border-b border-slate-200/50' : 'bg-transparent'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Home className="w-6 h-6 text-white" />
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg"
+              style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+            >
+              {projet.titre?.charAt(0)?.toUpperCase() || 'P'}
             </div>
-            <span className="font-bold text-xl text-slate-900">NotarialPro</span>
+            <span className={`font-bold text-lg hidden sm:block transition-colors ${scrolled ? 'text-slate-900' : 'text-white'}`}>
+              {projet.titre}
+            </span>
           </div>
-          <Button onClick={() => setFormOpen(true)}>
+
+          <nav className={`hidden lg:flex items-center gap-8 text-sm font-medium ${scrolled ? 'text-slate-600' : 'text-white/80'}`}>
+            <button onClick={() => scrollToSection('projet')} className="hover:opacity-100 transition">
+              Le Projet
+            </button>
+            <button onClick={() => scrollToSection('caracteristiques')} className="hover:opacity-100 transition">
+              Caracteristiques
+            </button>
+            {projet.images && projet.images.length > 0 && (
+              <button onClick={() => scrollToSection('galerie')} className="hover:opacity-100 transition">
+                Galerie
+              </button>
+            )}
+            <button onClick={() => scrollToSection('conditions')} className="hover:opacity-100 transition">
+              Conditions
+            </button>
+            <button onClick={() => scrollToSection('candidature')} className="hover:opacity-100 transition">
+              Candidature
+            </button>
+          </nav>
+
+          <Button
+            onClick={() => setFormOpen(true)}
+            className="text-white shadow-lg"
+            style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+          >
             Postuler
+            <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="relative h-[500px]">
+      {/* ========== HERO SECTION ========== */}
+      <section className="relative min-h-[90vh] sm:min-h-[85vh] flex items-end">
         {projet.banner_image ? (
-          <img
-            src={projet.banner_image}
-            alt={projet.titre}
-            className="w-full h-full object-cover"
-          />
+          <img src={projet.banner_image} alt={projet.titre} className="absolute inset-0 w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-blue-600 to-blue-800" />
+          <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }} />
         )}
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute inset-0 flex items-center">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-            <Badge className="mb-4 bg-white/20 text-white backdrop-blur">
-              {projet.type_bien}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
+
+        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24 pt-32">
+          <div className="max-w-3xl">
+            <Badge
+              className="mb-4 text-white border-0 text-sm px-3 py-1"
+              style={{ backgroundColor: `${colors.primary}cc` }}
+            >
+              {typeBienLabel}
             </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
               {projet.titre}
             </h1>
-            <p className="text-xl text-white/90 flex items-center gap-2">
-              <MapPin className="w-5 h-5" />
-              {projet.adresse}, {projet.ville}
+
+            <p className="text-lg sm:text-xl text-white/80 flex items-center gap-2 mb-6">
+              <MapPin className="w-5 h-5 flex-shrink-0" />
+              {projet.adresse}{projet.ville ? `, ${projet.ville}` : ''}
             </p>
+
+            {projet.prix > 0 && (
+              <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-2xl px-6 py-4 mb-8 border border-white/20">
+                <span className="text-white/70 text-sm font-medium">Prix</span>
+                <span className="text-2xl sm:text-3xl font-bold text-white">{formatFCFA(projet.prix)}</span>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button
+                size="lg"
+                onClick={() => setFormOpen(true)}
+                className="text-white text-lg shadow-xl"
+                style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+              >
+                Postuler maintenant
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => scrollToSection('projet')}
+                className="bg-white/10 backdrop-blur text-white border-white/30 hover:bg-white/20 hover:text-white"
+              >
+                Decouvrir le projet
+                <ChevronDown className="w-5 h-5 ml-2" />
+              </Button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Caractéristiques */}
-      <section className="py-12 bg-slate-50">
+      {/* ========== CARACTERISTIQUES ========== */}
+      <section id="caracteristiques" className="py-16 sm:py-20" style={{ backgroundColor: `${colors.primary}08` }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`grid gap-6 ${projet.type_bien === 'terrain' ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-4'}`}>
-            <Card>
+          <div className={`grid gap-4 sm:gap-6 ${projet.type_bien === 'terrain' ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-4'}`}>
+            {/* Prix */}
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow group">
               <CardContent className="p-6 text-center">
-                <div className="w-8 h-8 mx-auto mb-3 text-blue-600 font-bold text-xl">FCFA</div>
-                <p className="text-2xl font-bold text-slate-900">
-                  {projet.prix ? formatFCFA(projet.prix) : '—'}
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-transform group-hover:scale-110"
+                  style={{ backgroundColor: `${colors.primary}15` }}
+                >
+                  <span className="font-bold text-lg" style={{ color: colors.primary }}>FCFA</span>
+                </div>
+                <p className="text-xl sm:text-2xl font-bold text-slate-900">
+                  {projet.prix ? formatFCFA(projet.prix) : '--'}
                 </p>
-                <p className="text-sm text-slate-500">Prix</p>
+                <p className="text-sm text-slate-500 mt-1">Prix</p>
               </CardContent>
             </Card>
-            <Card>
+
+            {/* Surface */}
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow group">
               <CardContent className="p-6 text-center">
-                <Maximize className="w-8 h-8 mx-auto mb-3 text-blue-600" />
-                <p className="text-2xl font-bold text-slate-900">{projet.surface} m²</p>
-                <p className="text-sm text-slate-500">Superficie</p>
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-transform group-hover:scale-110"
+                  style={{ backgroundColor: `${colors.primary}15` }}
+                >
+                  <Maximize className="w-7 h-7" style={{ color: colors.primary }} />
+                </div>
+                <p className="text-xl sm:text-2xl font-bold text-slate-900">{projet.surface} m2</p>
+                <p className="text-sm text-slate-500 mt-1">Superficie</p>
               </CardContent>
             </Card>
+
             {projet.type_bien === 'terrain' ? (
-              <Card>
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow group">
                 <CardContent className="p-6 text-center">
-                  <Trees className="w-8 h-8 mx-auto mb-3 text-blue-600" />
-                  <p className="text-2xl font-bold text-slate-900">{projet.type_bien}</p>
-                  <p className="text-sm text-slate-500">Type de bien</p>
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-transform group-hover:scale-110"
+                    style={{ backgroundColor: `${colors.primary}15` }}
+                  >
+                    <Trees className="w-7 h-7" style={{ color: colors.primary }} />
+                  </div>
+                  <p className="text-xl sm:text-2xl font-bold text-slate-900">{typeBienLabel}</p>
+                  <p className="text-sm text-slate-500 mt-1">Type de bien</p>
                 </CardContent>
               </Card>
             ) : (
               <>
-                <Card>
+                <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow group">
                   <CardContent className="p-6 text-center">
-                    <Home className="w-8 h-8 mx-auto mb-3 text-blue-600" />
-                    <p className="text-2xl font-bold text-slate-900">{projet.nb_pieces}</p>
-                    <p className="text-sm text-slate-500">Pièces</p>
+                    <div
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-transform group-hover:scale-110"
+                      style={{ backgroundColor: `${colors.primary}15` }}
+                    >
+                      <Home className="w-7 h-7" style={{ color: colors.primary }} />
+                    </div>
+                    <p className="text-xl sm:text-2xl font-bold text-slate-900">{projet.nb_pieces}</p>
+                    <p className="text-sm text-slate-500 mt-1">Pieces</p>
                   </CardContent>
                 </Card>
-                <Card>
+                <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow group">
                   <CardContent className="p-6 text-center">
-                    <BedDouble className="w-8 h-8 mx-auto mb-3 text-blue-600" />
-                    <p className="text-2xl font-bold text-slate-900">{projet.nb_chambres}</p>
-                    <p className="text-sm text-slate-500">Chambres</p>
+                    <div
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-transform group-hover:scale-110"
+                      style={{ backgroundColor: `${colors.primary}15` }}
+                    >
+                      <BedDouble className="w-7 h-7" style={{ color: colors.primary }} />
+                    </div>
+                    <p className="text-xl sm:text-2xl font-bold text-slate-900">{projet.nb_chambres}</p>
+                    <p className="text-sm text-slate-500 mt-1">Chambres</p>
                   </CardContent>
                 </Card>
               </>
@@ -299,92 +432,240 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Description */}
-      <section className="py-12">
+      {/* ========== DESCRIPTION ========== */}
+      <section id="projet" className="py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-4">Description</h2>
-              <p className="text-slate-600 leading-relaxed whitespace-pre-line">
-                {projet.description || 'Aucune description disponible.'}
-              </p>
-
-              {/* Conditions */}
-              {projet.conditions_eligibilite && projet.conditions_eligibilite.length > 0 && (
-                <div className="mt-8">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-4">
-                    Conditions d'éligibilité
-                  </h3>
-                  <ul className="space-y-2">
-                    {projet.conditions_eligibilite.map((condition, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span className="text-slate-600">{condition}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-
-            {/* Images */}
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-4">Galerie photos</h2>
-              {projet.images && projet.images.length > 0 ? (
-                <div className="grid grid-cols-2 gap-4">
-                  {projet.images.map((image, index) => (
-                    <img
-                      key={index}
-                      src={image}
-                      alt={`Photo ${index + 1}`}
-                      className="rounded-lg w-full h-48 object-cover"
-                    />
-                  ))}
-                </div>
-              ) : (
-                <p className="text-slate-500">Aucune photo disponible</p>
-              )}
-            </div>
+          <div className="max-w-3xl mx-auto text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">A propos du projet</h2>
+            <div className="w-20 h-1 rounded-full mx-auto" style={{ backgroundColor: colors.primary }} />
           </div>
-        </div>
-      </section>
 
-      {/* Documents requis */}
-      <section className="py-12 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">Documents requis</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            {projet.documents_requis?.map((doc: DocumentRequis) => (
-              <div key={doc.id} className="flex items-start gap-3 p-4 bg-white rounded-lg shadow-sm">
-                <FileText className="w-6 h-6 text-blue-600 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-slate-900">{doc.nom}</p>
-                  <p className="text-sm text-slate-500">{doc.description}</p>
-                  {doc.obligatoire && (
-                    <Badge variant="secondary" className="mt-2">Obligatoire</Badge>
-                  )}
+          <div className="grid lg:grid-cols-5 gap-12 items-start">
+            <div className="lg:col-span-3">
+              <div className="prose prose-lg max-w-none">
+                <p className="text-slate-600 leading-relaxed whitespace-pre-line text-lg">
+                  {projet.description || 'Aucune description disponible.'}
+                </p>
+              </div>
+
+              {/* Points forts */}
+              <div className="grid sm:grid-cols-3 gap-6 mt-12">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${colors.primary}15` }}>
+                    <ShieldCheck className="w-5 h-5" style={{ color: colors.primary }} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-900 text-sm">Securise</p>
+                    <p className="text-xs text-slate-500">Accompagnement notarial</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${colors.primary}15` }}>
+                    <Clock className="w-5 h-5" style={{ color: colors.primary }} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-900 text-sm">Rapide</p>
+                    <p className="text-xs text-slate-500">Traitement accelere</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${colors.primary}15` }}>
+                    <TrendingUp className="w-5 h-5" style={{ color: colors.primary }} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-900 text-sm">Investissement</p>
+                    <p className="text-xs text-slate-500">Forte valorisation</p>
+                  </div>
                 </div>
               </div>
-            )) || (
-              <p className="text-slate-500">Aucun document spécifié</p>
-            )}
+            </div>
+
+            {/* Infos rapides laterales */}
+            <div className="lg:col-span-2">
+              <Card className="border-0 shadow-xl overflow-hidden">
+                <div className="p-1" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}>
+                  <div className="bg-white rounded-lg p-6 space-y-4">
+                    <h3 className="font-bold text-slate-900 text-lg">Informations cles</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between py-2 border-b border-slate-100">
+                        <span className="text-slate-500">Type</span>
+                        <span className="font-semibold text-slate-900">{typeBienLabel}</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b border-slate-100">
+                        <span className="text-slate-500">Prix</span>
+                        <span className="font-semibold" style={{ color: colors.primary }}>
+                          {projet.prix ? formatFCFA(projet.prix) : '--'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b border-slate-100">
+                        <span className="text-slate-500">Surface</span>
+                        <span className="font-semibold text-slate-900">{projet.surface} m2</span>
+                      </div>
+                      {projet.type_bien !== 'terrain' && (
+                        <>
+                          <div className="flex justify-between py-2 border-b border-slate-100">
+                            <span className="text-slate-500">Pieces</span>
+                            <span className="font-semibold text-slate-900">{projet.nb_pieces}</span>
+                          </div>
+                          <div className="flex justify-between py-2 border-b border-slate-100">
+                            <span className="text-slate-500">Chambres</span>
+                            <span className="font-semibold text-slate-900">{projet.nb_chambres}</span>
+                          </div>
+                        </>
+                      )}
+                      <div className="flex justify-between py-2">
+                        <span className="text-slate-500">Localisation</span>
+                        <span className="font-semibold text-slate-900 text-right">{projet.ville}</span>
+                      </div>
+                    </div>
+                    <Button
+                      className="w-full text-white mt-4"
+                      onClick={() => setFormOpen(true)}
+                      style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+                    >
+                      Postuler maintenant
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-16 bg-blue-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">
-            Intéressé par ce bien ?
+      {/* ========== GALERIE PHOTOS ========== */}
+      {projet.images && projet.images.length > 0 && (
+        <section id="galerie" className="py-16 sm:py-24" style={{ backgroundColor: `${colors.primary}05` }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto text-center mb-12">
+              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Galerie photos</h2>
+              <div className="w-20 h-1 rounded-full mx-auto" style={{ backgroundColor: colors.primary }} />
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {projet.images.map((image: string, index: number) => (
+                <div
+                  key={index}
+                  className="relative group cursor-pointer overflow-hidden rounded-2xl aspect-[4/3]"
+                  onClick={() => setLightboxImage(image)}
+                >
+                  <img
+                    src={image}
+                    alt={`Photo ${index + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                    <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Lightbox */}
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setLightboxImage(null)}
+        >
+          <button className="absolute top-4 right-4 text-white hover:text-slate-300 transition-colors">
+            <X className="w-8 h-8" />
+          </button>
+          <img
+            src={lightboxImage}
+            alt="Photo agrandie"
+            className="max-w-full max-h-[90vh] rounded-lg shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+      )}
+
+      {/* ========== CONDITIONS D'ELIGIBILITE ========== */}
+      {projet.conditions_eligibilite && projet.conditions_eligibilite.length > 0 && (
+        <section id="conditions" className="py-16 sm:py-24">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto text-center mb-12">
+              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Conditions d'eligibilite</h2>
+              <div className="w-20 h-1 rounded-full mx-auto" style={{ backgroundColor: colors.primary }} />
+              <p className="text-slate-500 mt-4 text-lg">Verifiez que vous remplissez les conditions pour candidater</p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              {projet.conditions_eligibilite.map((condition: string, index: number) => (
+                <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all group">
+                  <CardContent className="p-6 flex items-start gap-4">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
+                      style={{ backgroundColor: `${colors.primary}15` }}
+                    >
+                      <CheckCircle className="w-5 h-5" style={{ color: colors.primary }} />
+                    </div>
+                    <p className="text-slate-700 font-medium">{condition}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ========== DOCUMENTS REQUIS ========== */}
+      <section className="py-16 sm:py-24" style={{ backgroundColor: `${colors.primary}05` }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Documents requis</h2>
+            <div className="w-20 h-1 rounded-full mx-auto" style={{ backgroundColor: colors.primary }} />
+            <p className="text-slate-500 mt-4 text-lg">Preparez ces documents pour votre candidature</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+            {projet.documents_requis?.map((doc: DocumentRequis) => (
+              <Card key={doc.id} className="border-0 shadow-lg hover:shadow-xl transition-all group">
+                <CardContent className="p-5 flex items-start gap-4">
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
+                    style={{ backgroundColor: `${colors.primary}15` }}
+                  >
+                    <FileText className="w-6 h-6" style={{ color: colors.primary }} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-slate-900">{doc.nom}</p>
+                    <p className="text-sm text-slate-500 mt-0.5">{doc.description}</p>
+                    {doc.obligatoire && (
+                      <Badge className="mt-2 text-white text-xs" style={{ backgroundColor: colors.primary }}>
+                        Obligatoire
+                      </Badge>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )) || <p className="text-slate-500 col-span-2 text-center">Aucun document specifie</p>}
+          </div>
+        </div>
+      </section>
+
+      {/* ========== CTA CANDIDATURE ========== */}
+      <section id="candidature" className="py-20 sm:py-28 relative overflow-hidden">
+        <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }} />
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 right-10 w-96 h-96 bg-white rounded-full blur-3xl" />
+          <div className="absolute bottom-10 left-10 w-72 h-72 bg-white rounded-full blur-3xl" />
+        </div>
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
+            Interesse par ce bien ?
           </h2>
-          <p className="text-xl text-white/90 mb-8">
-            Déposez votre candidature dès maintenant
+          <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">
+            Deposez votre candidature des maintenant et rejoignez notre programme immobilier.
           </p>
           <Button
             size="lg"
-            variant="secondary"
             onClick={() => setFormOpen(true)}
+            className="bg-white hover:bg-slate-100 text-lg shadow-2xl px-8 py-6"
+            style={{ color: colors.primary }}
           >
             Postuler maintenant
             <ChevronRight className="w-5 h-5 ml-2" />
@@ -392,58 +673,95 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-slate-900 text-white py-12">
+      {/* ========== FOOTER ========== */}
+      <footer className="bg-slate-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-12">
             <div>
-              <h3 className="font-bold text-lg mb-4">Contact</h3>
-              <div className="space-y-2">
-                <p className="flex items-center gap-2 text-slate-300">
-                  <Phone className="w-4 h-4" />
-                  {projet.contact_phone}
-                </p>
-                <p className="flex items-center gap-2 text-slate-300">
-                  <Mail className="w-4 h-4" />
-                  {projet.contact_email}
-                </p>
+              <div className="flex items-center gap-3 mb-6">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg"
+                  style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+                >
+                  {projet.titre?.charAt(0)?.toUpperCase() || 'P'}
+                </div>
+                <span className="font-bold text-lg">{projet.titre}</span>
+              </div>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                {projet.description?.substring(0, 150)}
+                {projet.description && projet.description.length > 150 ? '...' : ''}
+              </p>
+            </div>
+            <div>
+              <h3 className="font-bold text-lg mb-6">Contact</h3>
+              <div className="space-y-3">
+                {projet.contact_phone && (
+                  <p className="flex items-center gap-3 text-slate-300 hover:text-white transition-colors">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${colors.primary}30` }}>
+                      <Phone className="w-4 h-4" />
+                    </div>
+                    {projet.contact_phone}
+                  </p>
+                )}
+                {projet.contact_email && (
+                  <p className="flex items-center gap-3 text-slate-300 hover:text-white transition-colors">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${colors.primary}30` }}>
+                      <Mail className="w-4 h-4" />
+                    </div>
+                    {projet.contact_email}
+                  </p>
+                )}
               </div>
             </div>
             <div>
-              <h3 className="font-bold text-lg mb-4">Adresse</h3>
-              <p className="text-slate-300">
-                {projet.adresse}<br />
+              <h3 className="font-bold text-lg mb-6">Adresse</h3>
+              <p className="text-slate-300 leading-relaxed">
+                {projet.adresse}
+                <br />
                 {projet.code_postal} {projet.ville}
               </p>
+              <div className="mt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setFormOpen(true)}
+                  className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white"
+                >
+                  Postuler
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-slate-400">
-                © {new Date().getFullYear()} NotarialPro.<br />
-                Tous droits réservés.
-              </p>
-            </div>
+          </div>
+          <div className="border-t border-slate-800 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-slate-500">
+              &copy; {new Date().getFullYear()} NotarialPro. Tous droits reserves.
+            </p>
+            <p className="text-xs text-slate-600">
+              Propulse par NotarialPro
+            </p>
           </div>
         </div>
       </footer>
 
-      {/* Chatbot */}
+      {/* ========== CHATBOT ========== */}
       {chatbotConfig?.enabled && (
         <div className="fixed bottom-6 right-6 z-50">
           {!chatOpen ? (
             <button
               onClick={() => setChatOpen(true)}
-              className="w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition-colors"
+              className="w-14 h-14 text-white rounded-full shadow-xl flex items-center justify-center transition-transform hover:scale-110"
+              style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
             >
               <MessageCircle className="w-6 h-6" />
             </button>
           ) : (
-            <div className="w-80 bg-white rounded-2xl shadow-2xl overflow-hidden">
-              <div className="bg-blue-600 text-white p-4 flex items-center justify-between">
+            <div className="w-80 sm:w-96 bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
+              <div className="text-white p-4 flex items-center justify-between" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}>
                 <div className="flex items-center gap-2">
                   <MessageCircle className="w-5 h-5" />
                   <span className="font-medium">Assistant virtuel</span>
                 </div>
-                <button onClick={() => setChatOpen(false)}>
+                <button onClick={() => setChatOpen(false)} className="hover:bg-white/20 rounded-lg p-1 transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -451,11 +769,12 @@ export function LandingPage() {
                 {chatMessages.map((msg, index) => (
                   <div
                     key={index}
-                    className={`p-3 rounded-lg text-sm ${
+                    className={`p-3 rounded-2xl text-sm ${
                       msg.role === 'user'
-                        ? 'bg-blue-600 text-white ml-8'
-                        : 'bg-slate-100 text-slate-700 mr-8'
+                        ? 'text-white ml-8 rounded-br-md'
+                        : 'bg-slate-100 text-slate-700 mr-8 rounded-bl-md'
                     }`}
+                    style={msg.role === 'user' ? { backgroundColor: colors.primary } : undefined}
                   >
                     {msg.message}
                   </div>
@@ -465,11 +784,17 @@ export function LandingPage() {
               <div className="p-3 border-t flex gap-2">
                 <Input
                   value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  placeholder="Écrivez votre message..."
-                  onKeyPress={(e) => e.key === 'Enter' && handleChatSubmit()}
+                  onChange={e => setChatInput(e.target.value)}
+                  placeholder="Ecrivez votre message..."
+                  onKeyPress={e => e.key === 'Enter' && handleChatSubmit()}
+                  className="rounded-xl"
                 />
-                <Button size="icon" onClick={handleChatSubmit}>
+                <Button
+                  size="icon"
+                  onClick={handleChatSubmit}
+                  className="text-white rounded-xl"
+                  style={{ backgroundColor: colors.primary }}
+                >
                   <Send className="w-4 h-4" />
                 </Button>
               </div>
@@ -478,89 +803,78 @@ export function LandingPage() {
         </div>
       )}
 
-      {/* Formulaire de candidature */}
+      {/* ========== FORMULAIRE DE CANDIDATURE ========== */}
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Formulaire de candidature</DialogTitle>
+            <DialogTitle className="text-xl">Formulaire de candidature</DialogTitle>
           </DialogHeader>
 
           {submitSuccess ? (
             <div className="text-center py-8">
-              <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-slate-900 mb-2">
-                Candidature envoyée avec succès !
-              </h3>
-              <p className="text-slate-500">
-                Nous vous contacterons dans les plus brefs délais.
-              </p>
-              <Button className="mt-6" onClick={() => setFormOpen(false)}>
+              <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: `${colors.primary}15` }}>
+                <CheckCircle className="w-10 h-10" style={{ color: colors.primary }} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Candidature envoyee avec succes !</h3>
+              <p className="text-slate-500">Nous vous contacterons dans les plus brefs delais.</p>
+              <Button className="mt-6 text-white" onClick={() => setFormOpen(false)} style={{ backgroundColor: colors.primary }}>
                 Fermer
               </Button>
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Étapes */}
+              {/* Etapes */}
               <div className="flex items-center gap-2 mb-6">
-                {[1, 2, 3, 4].map((step) => (
-                  <div
-                    key={step}
-                    className={`flex-1 h-2 rounded-full ${
-                      step <= formStep ? 'bg-blue-600' : 'bg-slate-200'
-                    }`}
-                  />
+                {[1, 2, 3, 4].map(step => (
+                  <div key={step} className="flex-1 flex items-center gap-1">
+                    <div
+                      className="flex-1 h-2 rounded-full transition-colors"
+                      style={{ backgroundColor: step <= formStep ? colors.primary : '#e2e8f0' }}
+                    />
+                  </div>
                 ))}
+              </div>
+              <div className="flex items-center gap-2 text-sm mb-2">
+                <span className="font-semibold" style={{ color: colors.primary }}>
+                  Etape {formStep}/4
+                </span>
+                <span className="text-slate-400">-</span>
+                <span className="text-slate-500">
+                  {formStep === 1 && 'Informations personnelles'}
+                  {formStep === 2 && 'Adresse et situation professionnelle'}
+                  {formStep === 3 && 'Situation financiere'}
+                  {formStep === 4 && 'Documents a fournir'}
+                </span>
               </div>
 
               {formStep === 1 && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Informations personnelles</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label>Nom *</Label>
-                      <Input
-                        value={formData.nom}
-                        onChange={(e) => setFormData(prev => ({ ...prev, nom: e.target.value }))}
-                      />
+                      <Input value={formData.nom} onChange={e => setFormData(prev => ({ ...prev, nom: e.target.value }))} />
                     </div>
                     <div>
-                      <Label>Prénom *</Label>
-                      <Input
-                        value={formData.prenom}
-                        onChange={(e) => setFormData(prev => ({ ...prev, prenom: e.target.value }))}
-                      />
+                      <Label>Prenom *</Label>
+                      <Input value={formData.prenom} onChange={e => setFormData(prev => ({ ...prev, prenom: e.target.value }))} />
                     </div>
                   </div>
                   <div>
                     <Label>Email *</Label>
-                    <Input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    />
+                    <Input type="email" value={formData.email} onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))} />
                   </div>
                   <div>
-                    <Label>Téléphone *</Label>
-                    <Input
-                      value={formData.telephone}
-                      onChange={(e) => setFormData(prev => ({ ...prev, telephone: e.target.value }))}
-                    />
+                    <Label>Telephone *</Label>
+                    <Input value={formData.telephone} onChange={e => setFormData(prev => ({ ...prev, telephone: e.target.value }))} />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label>Date de naissance</Label>
-                      <Input
-                        type="date"
-                        value={formData.date_naissance}
-                        onChange={(e) => setFormData(prev => ({ ...prev, date_naissance: e.target.value }))}
-                      />
+                      <Input type="date" value={formData.date_naissance} onChange={e => setFormData(prev => ({ ...prev, date_naissance: e.target.value }))} />
                     </div>
                     <div>
                       <Label>Lieu de naissance</Label>
-                      <Input
-                        value={formData.lieu_naissance}
-                        onChange={(e) => setFormData(prev => ({ ...prev, lieu_naissance: e.target.value }))}
-                      />
+                      <Input value={formData.lieu_naissance} onChange={e => setFormData(prev => ({ ...prev, lieu_naissance: e.target.value }))} />
                     </div>
                   </div>
                 </div>
@@ -571,118 +885,88 @@ export function LandingPage() {
                   <h3 className="font-semibold text-lg">Adresse</h3>
                   <div>
                     <Label>Adresse</Label>
-                    <Input
-                      value={formData.adresse}
-                      onChange={(e) => setFormData(prev => ({ ...prev, adresse: e.target.value }))}
-                    />
+                    <Input value={formData.adresse} onChange={e => setFormData(prev => ({ ...prev, adresse: e.target.value }))} />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label>Ville</Label>
-                      <Input
-                        value={formData.ville}
-                        onChange={(e) => setFormData(prev => ({ ...prev, ville: e.target.value }))}
-                      />
+                      <Input value={formData.ville} onChange={e => setFormData(prev => ({ ...prev, ville: e.target.value }))} />
                     </div>
                     <div>
                       <Label>Code postal</Label>
-                      <Input
-                        value={formData.code_postal}
-                        onChange={(e) => setFormData(prev => ({ ...prev, code_postal: e.target.value }))}
-                      />
+                      <Input value={formData.code_postal} onChange={e => setFormData(prev => ({ ...prev, code_postal: e.target.value }))} />
                     </div>
                   </div>
 
                   <h3 className="font-semibold text-lg mt-6">Situation professionnelle</h3>
                   <div>
                     <Label>Profession</Label>
-                    <Input
-                      value={formData.profession}
-                      onChange={(e) => setFormData(prev => ({ ...prev, profession: e.target.value }))}
-                    />
+                    <Input value={formData.profession} onChange={e => setFormData(prev => ({ ...prev, profession: e.target.value }))} />
                   </div>
                   <div>
                     <Label>Employeur</Label>
-                    <Input
-                      value={formData.employeur}
-                      onChange={(e) => setFormData(prev => ({ ...prev, employeur: e.target.value }))}
-                    />
+                    <Input value={formData.employeur} onChange={e => setFormData(prev => ({ ...prev, employeur: e.target.value }))} />
                   </div>
                   <div>
                     <Label>Revenus mensuels nets (FCFA)</Label>
-                    <Input
-                      type="number"
-                      value={formData.revenus_mensuels}
-                      onChange={(e) => setFormData(prev => ({ ...prev, revenus_mensuels: e.target.value }))}
-                    />
+                    <Input type="number" value={formData.revenus_mensuels} onChange={e => setFormData(prev => ({ ...prev, revenus_mensuels: e.target.value }))} />
                   </div>
                 </div>
               )}
 
               {formStep === 3 && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Situation financière</h3>
+                  <h3 className="font-semibold text-lg">Situation financiere</h3>
                   <div>
                     <Label>Apport personnel (FCFA)</Label>
-                    <Input
-                      type="number"
-                      value={formData.apport_personnel}
-                      onChange={(e) => setFormData(prev => ({ ...prev, apport_personnel: e.target.value }))}
-                    />
+                    <Input type="number" value={formData.apport_personnel} onChange={e => setFormData(prev => ({ ...prev, apport_personnel: e.target.value }))} />
                   </div>
                   <div>
                     <Label>Montant du pret sollicite (FCFA)</Label>
-                    <Input
-                      type="number"
-                      value={formData.montant_pret_sollicite}
-                      onChange={(e) => setFormData(prev => ({ ...prev, montant_pret_sollicite: e.target.value }))}
-                    />
+                    <Input type="number" value={formData.montant_pret_sollicite} onChange={e => setFormData(prev => ({ ...prev, montant_pret_sollicite: e.target.value }))} />
                   </div>
                   <div>
-                    <Label>Durée du prêt (mois)</Label>
-                    <Input
-                      type="number"
-                      value={formData.duree_pret}
-                      onChange={(e) => setFormData(prev => ({ ...prev, duree_pret: e.target.value }))}
-                    />
+                    <Label>Duree du pret (mois)</Label>
+                    <Input type="number" value={formData.duree_pret} onChange={e => setFormData(prev => ({ ...prev, duree_pret: e.target.value }))} />
                   </div>
                   <div>
                     <Label>Banque actuelle</Label>
-                    <Input
-                      value={formData.banque_actuelle}
-                      onChange={(e) => setFormData(prev => ({ ...prev, banque_actuelle: e.target.value }))}
-                    />
+                    <Input value={formData.banque_actuelle} onChange={e => setFormData(prev => ({ ...prev, banque_actuelle: e.target.value }))} />
                   </div>
                 </div>
               )}
 
               {formStep === 4 && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Documents à fournir</h3>
+                  <h3 className="font-semibold text-lg">Documents a fournir</h3>
                   {projet.documents_requis?.map((doc: DocumentRequis) => (
-                    <div key={doc.id} className="p-4 border rounded-lg">
+                    <div key={doc.id} className="p-4 border rounded-xl bg-slate-50">
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <p className="font-medium">{doc.nom}</p>
                           <p className="text-sm text-slate-500">{doc.description}</p>
                           {doc.obligatoire && (
-                            <Badge variant="secondary" className="mt-1">Obligatoire</Badge>
+                            <Badge className="mt-1 text-white text-xs" style={{ backgroundColor: colors.primary }}>
+                              Obligatoire
+                            </Badge>
                           )}
                         </div>
                       </div>
                       <Input
                         type="file"
                         accept={doc.type_fichier.join(',')}
-                        onChange={(e) => {
+                        onChange={e => {
                           const file = e.target.files?.[0];
                           if (file) {
                             setDocuments(prev => ({ ...prev, [doc.id]: file }));
                           }
                         }}
+                        className="mt-2"
                       />
                       {documents[doc.id] && (
-                        <p className="text-sm text-emerald-600 mt-1">
-                          ✓ {documents[doc.id].name}
+                        <p className="text-sm mt-1 flex items-center gap-1" style={{ color: colors.primary }}>
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          {documents[doc.id].name}
                         </p>
                       )}
                     </div>
@@ -697,16 +981,19 @@ export function LandingPage() {
                   onClick={() => setFormStep(prev => Math.max(1, prev - 1))}
                   disabled={formStep === 1}
                 >
-                  Précédent
+                  Precedent
                 </Button>
                 {formStep < 4 ? (
-                  <Button onClick={() => setFormStep(prev => prev + 1)}>
+                  <Button onClick={() => setFormStep(prev => prev + 1)} className="text-white" style={{ backgroundColor: colors.primary }}>
                     Suivant
+                    <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 ) : (
-                  <Button 
+                  <Button
                     onClick={handleFormSubmit}
                     disabled={creatingCandidat}
+                    className="text-white"
+                    style={{ backgroundColor: colors.primary }}
                   >
                     {creatingCandidat ? 'Envoi en cours...' : 'Envoyer ma candidature'}
                   </Button>

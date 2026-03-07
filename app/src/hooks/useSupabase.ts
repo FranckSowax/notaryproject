@@ -79,7 +79,6 @@ export function useProjetBySlug(slug: string) {
             documents_requis (*)
           `)
           .eq('slug', slug)
-          .eq('statut', 'actif')
           .single();
 
         if (error) throw error;
