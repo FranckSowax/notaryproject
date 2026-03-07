@@ -799,123 +799,119 @@ export function NouveauProjet() {
                     />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Produits / Parcelles multiples */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="w-5 h-5 text-blue-600" />
-                  Produits / Parcelles
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="produitsEnabled"
-                    checked={produitsEnabled}
-                    onChange={e => {
-                      setProduitsEnabled(e.target.checked);
-                      if (e.target.checked && produits.length === 0) addProduit();
-                    }}
-                    className="w-4 h-4 rounded border-slate-300"
-                  />
-                  <Label htmlFor="produitsEnabled" className="cursor-pointer">
-                    Ce projet propose plusieurs produits (parcelles de differentes tailles)
-                  </Label>
-                </div>
-
-                {produitsEnabled && (
-                  <div className="space-y-4 pt-2">
-                    <p className="text-sm text-slate-500">
-                      Definissez les differentes parcelles proposees. Les champs Prix et Surface ci-dessus serviront de valeurs par defaut.
-                    </p>
-
-                    {produits.map((produit, index) => (
-                      <div key={produit.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-slate-700">Produit {index + 1}</span>
-                          <button
-                            onClick={() => removeProduit(produit.id)}
-                            className="p-1 text-slate-400 hover:text-red-500 transition-colors"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          <div>
-                            <Label className="text-xs">Nom *</Label>
-                            <Input
-                              value={produit.nom}
-                              onChange={e => updateProduit(produit.id, 'nom', e.target.value)}
-                              placeholder="Ex: Standard, Premium"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs">Surface (m2) *</Label>
-                            <Input
-                              type="number"
-                              value={produit.surface}
-                              onChange={e => updateProduit(produit.id, 'surface', e.target.value)}
-                              placeholder="525"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs">Prix (FCFA) *</Label>
-                            <Input
-                              type="number"
-                              value={produit.prix}
-                              onChange={e => updateProduit(produit.id, 'prix', e.target.value)}
-                              placeholder="5000000"
-                            />
-                            {produit.prix && (
-                              <p className="text-xs text-slate-400 mt-0.5">{formatFCFA(parseFloat(produit.prix))}</p>
-                            )}
-                          </div>
-                        </div>
-                        <div>
-                          <Label className="text-xs">Description courte</Label>
-                          <Input
-                            value={produit.description}
-                            onChange={e => updateProduit(produit.id, 'description', e.target.value)}
-                            placeholder="Frais inclus, bornage, titre foncier..."
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-xs">Image du produit</Label>
-                          <div className="flex items-center gap-3 mt-1">
-                            {produit.imagePreview ? (
-                              <img src={produit.imagePreview} alt={produit.nom} className="w-16 h-16 rounded-lg object-cover" />
-                            ) : (
-                              <div className="w-16 h-16 rounded-lg bg-slate-200 flex items-center justify-center">
-                                <ImageIcon className="w-6 h-6 text-slate-400" />
-                              </div>
-                            )}
-                            <label className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer">
-                              {produit.imagePreview ? 'Changer' : 'Ajouter une image'}
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={e => {
-                                  const file = e.target.files?.[0];
-                                  if (file) handleProduitImageChange(produit.id, file);
-                                }}
-                              />
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-
-                    <Button variant="outline" size="sm" onClick={addProduit} className="w-full">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Ajouter un produit
-                    </Button>
+                {/* Produits / Parcelles multiples */}
+                <div className="pt-4 border-t border-slate-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Package className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-semibold text-slate-700">Produits / Parcelles</span>
                   </div>
-                )}
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="produitsEnabled"
+                      checked={produitsEnabled}
+                      onChange={e => {
+                        setProduitsEnabled(e.target.checked);
+                        if (e.target.checked && produits.length === 0) addProduit();
+                      }}
+                      className="w-4 h-4 rounded border-slate-300"
+                    />
+                    <Label htmlFor="produitsEnabled" className="cursor-pointer text-sm">
+                      Ce projet propose plusieurs produits (parcelles de differentes tailles)
+                    </Label>
+                  </div>
+
+                  {produitsEnabled && (
+                    <div className="space-y-4 pt-3">
+                      <p className="text-sm text-slate-500">
+                        Definissez les differentes parcelles proposees. Les champs Prix et Surface ci-dessus serviront de valeurs par defaut.
+                      </p>
+
+                      {produits.map((produit, index) => (
+                        <div key={produit.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-slate-700">Produit {index + 1}</span>
+                            <button
+                              onClick={() => removeProduit(produit.id)}
+                              className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                              <Label className="text-xs">Nom *</Label>
+                              <Input
+                                value={produit.nom}
+                                onChange={e => updateProduit(produit.id, 'nom', e.target.value)}
+                                placeholder="Ex: Standard, Premium"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Surface (m2) *</Label>
+                              <Input
+                                type="number"
+                                value={produit.surface}
+                                onChange={e => updateProduit(produit.id, 'surface', e.target.value)}
+                                placeholder="525"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Prix (FCFA) *</Label>
+                              <Input
+                                type="number"
+                                value={produit.prix}
+                                onChange={e => updateProduit(produit.id, 'prix', e.target.value)}
+                                placeholder="5000000"
+                              />
+                              {produit.prix && (
+                                <p className="text-xs text-slate-400 mt-0.5">{formatFCFA(parseFloat(produit.prix))}</p>
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <Label className="text-xs">Description courte</Label>
+                            <Input
+                              value={produit.description}
+                              onChange={e => updateProduit(produit.id, 'description', e.target.value)}
+                              placeholder="Frais inclus, bornage, titre foncier..."
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs">Image du produit</Label>
+                            <div className="flex items-center gap-3 mt-1">
+                              {produit.imagePreview ? (
+                                <img src={produit.imagePreview} alt={produit.nom} className="w-16 h-16 rounded-lg object-cover" />
+                              ) : (
+                                <div className="w-16 h-16 rounded-lg bg-slate-200 flex items-center justify-center">
+                                  <ImageIcon className="w-6 h-6 text-slate-400" />
+                                </div>
+                              )}
+                              <label className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer">
+                                {produit.imagePreview ? 'Changer' : 'Ajouter une image'}
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={e => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleProduitImageChange(produit.id, file);
+                                  }}
+                                />
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      <Button variant="outline" size="sm" onClick={addProduit} className="w-full">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Ajouter un produit
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
