@@ -1,0 +1,13 @@
+[build]
+  base = "app"
+  command = "npm run build"
+  publish = "app/dist"
+  functions = "app/netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
