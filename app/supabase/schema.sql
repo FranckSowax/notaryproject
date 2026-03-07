@@ -489,12 +489,12 @@ CREATE POLICY "activity_logs_insert" ON activity_logs
 -- ============================================
 
 INSERT INTO app_settings (key, value, description) VALUES
-('app_name', 'NotarialPro', 'Nom de l\'application'),
-('app_version', '1.0.0', 'Version de l\'application'),
+('app_name', 'NotarialPro', 'Nom de l''application'),
+('app_version', '1.0.0', 'Version de l''application'),
 ('max_file_size', '10485760', 'Taille maximale des fichiers en octets (10MB)'),
-('allowed_file_types', '["pdf","jpg","jpeg","png","doc","docx"]', 'Types de fichiers autorisés'),
-('whatsapp_enabled', 'false', 'Activation de l\'intégration WhatsApp'),
-('chatbot_enabled', 'true', 'Activation du chatbot par défaut');
+('allowed_file_types', '["pdf","jpg","jpeg","png","doc","docx"]', 'Types de fichiers autorises'),
+('whatsapp_enabled', 'false', 'Activation de l''integration WhatsApp'),
+('chatbot_enabled', 'true', 'Activation du chatbot par defaut');
 
 -- ============================================
 -- VUES POUR LE DASHBOARD
