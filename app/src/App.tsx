@@ -58,6 +58,7 @@ function App() {
               <Route path="/dashboard/projets" element={<ProjetsList />} />
               <Route path="/dashboard/nouveau-projet" element={<NouveauProjet />} />
               <Route path="/dashboard/candidats" element={<CandidatsList />} />
+              <Route path="/dashboard/projets/:projetId/candidats" element={<CandidatsList />} />
               <Route path="/dashboard/messages" element={<MessagesPage />} />
               <Route path="/dashboard/parametres" element={<ParametresPage />} />
             </Route>

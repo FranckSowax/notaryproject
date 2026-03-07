@@ -1,5 +1,5 @@
 import { useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
   Search,
   Filter,
@@ -25,8 +25,9 @@ const statutFilters = [
 
 export function CandidatsList() {
   const { cabinetId } = useAuth();
+  const { projetId } = useParams<{ projetId?: string }>();
   const { projets } = useProjets(cabinetId ?? undefined);
-  const [selectedProjet, setSelectedProjet] = useState<string>('all');
+  const [selectedProjet, setSelectedProjet] = useState<string>(projetId || 'all');
   const [searchTerm, setSearchTerm] = useState('');
   const [statutFilter, setStatutFilter] = useState<string>('all');
   
@@ -84,9 +85,14 @@ export function CandidatsList() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Candidats</h1>
+          <h1 className="text-2xl font-bold text-slate-900">
+            Candidats
+            {selectedProjet !== 'all' && projets.find(p => p.id === selectedProjet) && (
+              <span className="text-lg font-normal text-slate-500"> — {projets.find(p => p.id === selectedProjet)?.titre}</span>
+            )}
+          </h1>
           <p className="text-slate-500 mt-1">
-            {candidats.length} candidat{candidats.length > 1 ? 's' : ''} au total
+            {filteredCandidats.length} candidat{filteredCandidats.length > 1 ? 's' : ''}{statutFilter !== 'all' ? ` (${statutFilters.find(f => f.value === statutFilter)?.label})` : ''}
           </p>
         </div>
         <Button variant="outline" onClick={exportCSV}>
