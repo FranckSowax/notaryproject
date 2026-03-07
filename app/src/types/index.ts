@@ -30,6 +30,16 @@ export interface ProjetImmobilier {
   nombre_retenus: number;
 }
 
+// Produit (parcelle/lot) d'un projet - stocke dans metadata.produits
+export interface Produit {
+  id: string;
+  nom: string;           // Ex: "Standard", "Premium"
+  surface: number;        // m2
+  prix: number;           // FCFA
+  description: string;
+  image: string;          // URL de l'image principale du produit
+}
+
 export interface DocumentRequis {
   id: string;
   nom: string;

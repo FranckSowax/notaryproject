@@ -31,7 +31,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useProjetBySlug, useCreateCandidat, useChatbotConfig } from '@/hooks/useSupabase';
 import { supabase } from '@/lib/supabase';
 import { formatFCFA } from '@/lib/formatCurrency';
-import type { DocumentRequis, DocumentFourni } from '@/types';
+import type { DocumentRequis, DocumentFourni, Produit } from '@/types';
 
 function getGoogleMapsEmbedUrl(lien: string | null | undefined): string | null {
   if (!lien) return null;
@@ -128,10 +128,18 @@ export function LandingPage() {
   // Lightbox galerie
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
+  // Produits (parcelles) du projet
+  const produits: Produit[] = useMemo(() => {
+    const meta = (projet as any)?.metadata as Record<string, any> | null | undefined;
+    return (meta?.produits as Produit[]) || [];
+  }, [projet]);
+  const hasProduits = produits.length > 0;
+
   // Formulaire candidature - 3 etapes
   const [formOpen, setFormOpen] = useState(false);
   const [formStep, setFormStep] = useState(1);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [selectedProduit, setSelectedProduit] = useState<string>('');
   const [formData, setFormData] = useState({
     // Etape 1 - Informations personnelles
     nom: '',
@@ -234,6 +242,7 @@ export function LandingPage() {
     const errors: Record<string, string> = {};
 
     if (step === 1) {
+      if (hasProduits && !selectedProduit) errors.selectedProduit = 'Veuillez choisir une parcelle';
       if (!formData.nom.trim()) errors.nom = 'Le nom est requis';
       if (!formData.prenom.trim()) errors.prenom = 'Le prenom est requis';
       if (!formData.date_naissance) errors.date_naissance = 'La date de naissance est requise';
@@ -319,7 +328,7 @@ export function LandingPage() {
         banque_actuelle: formData.banque_actuelle,
         documents: documentsFournis,
         statut: 'nouveau' as const,
-        notes: `Categorie socio-pro: ${formData.categorie_sociopro} | Tranche revenus: ${formData.tranche_revenus}${formData.whatsapp ? ' | WhatsApp: ' + formData.whatsapp : ''}`,
+        notes: `${selectedProduit ? 'Produit choisi: ' + (produits.find(pr => pr.id === selectedProduit)?.nom || selectedProduit) + ' | ' : ''}Categorie socio-pro: ${formData.categorie_sociopro} | Tranche revenus: ${formData.tranche_revenus}${formData.whatsapp ? ' | WhatsApp: ' + formData.whatsapp : ''}`,
       };
       await createCandidat(candidatData);
       setSubmitSuccess(true);
@@ -393,6 +402,9 @@ export function LandingPage() {
 
           <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-600">
             <a href="#presentation" className="hover:text-slate-900 transition">Le Projet</a>
+            {hasProduits && (
+              <a href="#parcelles" className="hover:text-slate-900 transition">Parcelles</a>
+            )}
             <a href="#details" className="hover:text-slate-900 transition">Details</a>
             {p.images && p.images.length > 0 && (
               <a href="#galerie" className="hover:text-slate-900 transition">Galerie</a>
@@ -420,23 +432,13 @@ export function LandingPage() {
         <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full blur-3xl -z-10" style={{ backgroundColor: `${colors.secondary}15` }} />
 
         <div className="container mx-auto max-w-7xl">
-          {projet.description && (
-            <div className="mb-12 border rounded-2xl p-6 max-w-4xl" style={{ background: `linear-gradient(135deg, ${colors.primary}05, ${colors.secondary}08)`, borderColor: `${colors.primary}20` }}>
-              <div className="flex items-start gap-4">
-                <div className="w-1 rounded-full shrink-0 self-stretch min-h-[60px]" style={{ backgroundColor: colors.primary }} />
-                <p className="text-slate-700 text-lg leading-relaxed">
-                  {projet.description}
-                </p>
-              </div>
-            </div>
-          )}
-
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="flex flex-col gap-8">
               <div className="space-y-8">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
                   {projet.type_bien === 'terrain' ? <Trees className="w-4 h-4" /> : <Home className="w-4 h-4" />}
-                  {typeBienLabel} {projet.surface > 0 && `— ${projet.surface} m2`}
+                  {typeBienLabel} {!hasProduits && projet.surface > 0 && `— ${projet.surface} m2`}
+                  {hasProduits && `— ${produits.length} offre${produits.length > 1 ? 's' : ''} disponible${produits.length > 1 ? 's' : ''}`}
                 </div>
 
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
@@ -445,11 +447,18 @@ export function LandingPage() {
                   </span>
                 </h1>
 
-                {projet.prix > 0 && (
+                {hasProduits ? (
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-lg text-slate-500">A partir de</span>
+                    <span className="text-4xl font-bold" style={{ color: colors.primary }}>
+                      {formatFCFA(Math.min(...produits.map(pr => pr.prix)))}
+                    </span>
+                  </div>
+                ) : projet.prix > 0 ? (
                   <div className="flex items-baseline gap-3">
                     <span className="text-4xl font-bold" style={{ color: colors.primary }}>{formatFCFA(projet.prix)}</span>
                   </div>
-                )}
+                ) : null}
 
                 <div className="flex flex-col sm:flex-row gap-4 pt-4">
                   <Button
@@ -554,13 +563,96 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* ========== SECTION PARCELLES / PRODUITS ========== */}
+      {hasProduits && (
+        <section id="parcelles" className="py-24" style={{ background: `linear-gradient(135deg, ${colors.primary}05, ${colors.secondary}08)` }}>
+          <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-6">Nos offres</h2>
+              <p className="text-xl text-slate-600 max-w-3xl mx-auto">Choisissez la parcelle qui correspond a vos besoins.</p>
+            </div>
+
+            <div className={`grid gap-8 ${produits.length === 1 ? 'max-w-lg mx-auto' : produits.length === 2 ? 'md:grid-cols-2 max-w-4xl mx-auto' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
+              {produits.map((produit) => (
+                <Card key={produit.id} className="overflow-hidden border-slate-200 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1">
+                  {produit.image ? (
+                    <div className="relative h-52">
+                      <img src={produit.image} alt={produit.nom} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                      <div className="absolute bottom-4 left-4">
+                        <Badge className="text-white text-sm px-3 py-1" style={{ backgroundColor: colors.primary }}>
+                          {produit.surface} m2
+                        </Badge>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-52 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}>
+                      <div className="text-center text-white">
+                        <Maximize className="w-10 h-10 mx-auto mb-2 opacity-80" />
+                        <span className="text-2xl font-bold">{produit.surface} m2</span>
+                      </div>
+                    </div>
+                  )}
+                  <CardContent className="p-6">
+                    <h3 className="text-2xl font-bold text-slate-800 mb-2">{produit.nom}</h3>
+                    {produit.description && (
+                      <p className="text-slate-500 text-sm mb-4">{produit.description}</p>
+                    )}
+                    <div className="flex items-baseline gap-2 mb-6">
+                      <span className="text-3xl font-bold" style={{ color: colors.primary }}>{formatFCFA(produit.prix)}</span>
+                    </div>
+                    <div className="space-y-2 mb-6 text-sm">
+                      <div className="flex items-center gap-2 text-slate-600">
+                        <CheckCircle className="w-4 h-4" style={{ color: colors.primary }} />
+                        <span>Surface : {produit.surface} m2</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-slate-600">
+                        <CheckCircle className="w-4 h-4" style={{ color: colors.primary }} />
+                        <span>Titre foncier securise</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-slate-600">
+                        <CheckCircle className="w-4 h-4" style={{ color: colors.primary }} />
+                        <span>Accompagnement notarial</span>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        setSelectedProduit(produit.id);
+                        setFormOpen(true);
+                      }}
+                      className="w-full text-white"
+                      style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+                    >
+                      Choisir cette offre
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ========== DETAILS DU BIEN ========== */}
-      <section id="details" className="py-24" style={{ background: `linear-gradient(135deg, ${colors.primary}05, ${colors.secondary}08)` }}>
+      <section id="details" className="py-24" style={hasProduits ? undefined : { background: `linear-gradient(135deg, ${colors.primary}05, ${colors.secondary}08)` }}>
         <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-6">Details du bien</h2>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">Toutes les informations sur ce programme immobilier.</p>
           </div>
+
+          {/* Description du projet - deplacee ici */}
+          {projet.description && (
+            <div className="mb-12 border rounded-2xl p-6 max-w-4xl mx-auto" style={{ background: `linear-gradient(135deg, ${colors.primary}05, ${colors.secondary}08)`, borderColor: `${colors.primary}20` }}>
+              <div className="flex items-start gap-4">
+                <div className="w-1 rounded-full shrink-0 self-stretch min-h-[60px]" style={{ backgroundColor: colors.primary }} />
+                <p className="text-slate-700 text-lg leading-relaxed">
+                  {projet.description}
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="grid lg:grid-cols-2 gap-8">
             <Card className="overflow-hidden border-slate-200 shadow-lg">
@@ -919,6 +1011,7 @@ export function LandingPage() {
         if (!open) {
           setFormStep(1);
           setFormErrors({});
+          if (!hasProduits) setSelectedProduit('');
         }
       }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -987,6 +1080,46 @@ export function LandingPage() {
               {/* ===== ETAPE 1 : Informations personnelles ===== */}
               {formStep === 1 && (
                 <div className="space-y-5">
+                  {/* Selection du produit si multi-produits */}
+                  {hasProduits && (
+                    <div>
+                      <h3 className="font-semibold text-lg flex items-center gap-2 text-slate-800 mb-3">
+                        <Maximize className="w-5 h-5" style={{ color: colors.primary }} />
+                        Choix de la parcelle *
+                      </h3>
+                      <div className={`grid gap-3 ${produits.length <= 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}>
+                        {produits.map(produit => (
+                          <button
+                            key={produit.id}
+                            type="button"
+                            onClick={() => setSelectedProduit(produit.id)}
+                            className={`p-4 rounded-xl border-2 text-left transition-all ${
+                              selectedProduit === produit.id
+                                ? 'shadow-lg'
+                                : 'border-slate-200 hover:border-slate-300'
+                            }`}
+                            style={selectedProduit === produit.id ? { borderColor: colors.primary, backgroundColor: `${colors.primary}08` } : undefined}
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-bold text-slate-800">{produit.nom}</span>
+                              {selectedProduit === produit.id && (
+                                <CheckCircle className="w-5 h-5" style={{ color: colors.primary }} />
+                              )}
+                            </div>
+                            <p className="text-sm text-slate-500">{produit.surface} m2</p>
+                            <p className="font-bold mt-1" style={{ color: colors.primary }}>{formatFCFA(produit.prix)}</p>
+                          </button>
+                        ))}
+                      </div>
+                      {formErrors.selectedProduit && (
+                        <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                          <CircleAlert className="w-3 h-3" />
+                          {formErrors.selectedProduit}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   <h3 className="font-semibold text-lg flex items-center gap-2 text-slate-800">
                     <User className="w-5 h-5" style={{ color: colors.primary }} />
                     Informations personnelles

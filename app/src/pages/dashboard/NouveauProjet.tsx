@@ -15,6 +15,7 @@ import {
   Mail,
   AlertCircle,
   Check,
+  Package,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,7 +28,7 @@ import { supabase, generateSlug } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { formatFCFA } from '@/lib/formatCurrency';
-import type { DocumentRequis } from '@/types';
+import type { DocumentRequis, Produit } from '@/types';
 
 const typeBienOptions = [
   { value: 'terrain', label: 'Terrain' },
@@ -274,6 +275,42 @@ export function NouveauProjet() {
   ]);
   const [newCondition, setNewCondition] = useState('');
 
+  // Produits (parcelles multiples)
+  const [produitsEnabled, setProduitsEnabled] = useState(false);
+  const [produits, setProduits] = useState<Array<{
+    id: string;
+    nom: string;
+    surface: string;
+    prix: string;
+    description: string;
+    imageFile: File | null;
+    imagePreview: string;
+  }>>([]);
+
+  const addProduit = () => {
+    setProduits(prev => [...prev, {
+      id: Date.now().toString(),
+      nom: '',
+      surface: '',
+      prix: '',
+      description: '',
+      imageFile: null,
+      imagePreview: '',
+    }]);
+  };
+
+  const updateProduit = (id: string, field: string, value: string) => {
+    setProduits(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
+  };
+
+  const removeProduit = (id: string) => {
+    setProduits(prev => prev.filter(p => p.id !== id));
+  };
+
+  const handleProduitImageChange = (id: string, file: File) => {
+    setProduits(prev => prev.map(p => p.id === id ? { ...p, imageFile: file, imagePreview: URL.createObjectURL(file) } : p));
+  };
+
   // Etape 5: Theme
   const [couleurPrimaire, setCouleurPrimaire] = useState('#1e40af');
   const [couleurSecondaire, setCouleurSecondaire] = useState('#047857');
@@ -449,6 +486,35 @@ export function NouveauProjet() {
         }
       }
 
+      // Upload product images and build produits array
+      let uploadedProduits: Produit[] | undefined;
+      if (produitsEnabled && produits.length > 0) {
+        uploadedProduits = [];
+        for (const produit of produits) {
+          let produitImageUrl = '';
+          if (produit.imageFile) {
+            const path = `produits/${Date.now()}_${produit.imageFile.name}`;
+            const { data, error } = await supabase.storage
+              .from('projets')
+              .upload(path, produit.imageFile);
+            if (!error && data) {
+              const { data: { publicUrl } } = supabase.storage
+                .from('projets')
+                .getPublicUrl(data.path);
+              produitImageUrl = publicUrl;
+            }
+          }
+          uploadedProduits.push({
+            id: produit.id,
+            nom: produit.nom,
+            surface: parseFloat(produit.surface) || 0,
+            prix: parseFloat(produit.prix) || 0,
+            description: produit.description,
+            image: produitImageUrl,
+          });
+        }
+      }
+
       // Creer le projet
       const slug = generateSlug(formData.titre);
       const projetData = {
@@ -476,6 +542,7 @@ export function NouveauProjet() {
         metadata: {
           couleur_primaire: couleurPrimaire,
           couleur_secondaire: couleurSecondaire,
+          ...(uploadedProduits ? { produits: uploadedProduits } : {}),
         },
       };
 
@@ -732,6 +799,123 @@ export function NouveauProjet() {
                     />
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Produits / Parcelles multiples */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="w-5 h-5 text-blue-600" />
+                  Produits / Parcelles
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="produitsEnabled"
+                    checked={produitsEnabled}
+                    onChange={e => {
+                      setProduitsEnabled(e.target.checked);
+                      if (e.target.checked && produits.length === 0) addProduit();
+                    }}
+                    className="w-4 h-4 rounded border-slate-300"
+                  />
+                  <Label htmlFor="produitsEnabled" className="cursor-pointer">
+                    Ce projet propose plusieurs produits (parcelles de differentes tailles)
+                  </Label>
+                </div>
+
+                {produitsEnabled && (
+                  <div className="space-y-4 pt-2">
+                    <p className="text-sm text-slate-500">
+                      Definissez les differentes parcelles proposees. Les champs Prix et Surface ci-dessus serviront de valeurs par defaut.
+                    </p>
+
+                    {produits.map((produit, index) => (
+                      <div key={produit.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-slate-700">Produit {index + 1}</span>
+                          <button
+                            onClick={() => removeProduit(produit.id)}
+                            className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <Label className="text-xs">Nom *</Label>
+                            <Input
+                              value={produit.nom}
+                              onChange={e => updateProduit(produit.id, 'nom', e.target.value)}
+                              placeholder="Ex: Standard, Premium"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs">Surface (m2) *</Label>
+                            <Input
+                              type="number"
+                              value={produit.surface}
+                              onChange={e => updateProduit(produit.id, 'surface', e.target.value)}
+                              placeholder="525"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs">Prix (FCFA) *</Label>
+                            <Input
+                              type="number"
+                              value={produit.prix}
+                              onChange={e => updateProduit(produit.id, 'prix', e.target.value)}
+                              placeholder="5000000"
+                            />
+                            {produit.prix && (
+                              <p className="text-xs text-slate-400 mt-0.5">{formatFCFA(parseFloat(produit.prix))}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-xs">Description courte</Label>
+                          <Input
+                            value={produit.description}
+                            onChange={e => updateProduit(produit.id, 'description', e.target.value)}
+                            placeholder="Frais inclus, bornage, titre foncier..."
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Image du produit</Label>
+                          <div className="flex items-center gap-3 mt-1">
+                            {produit.imagePreview ? (
+                              <img src={produit.imagePreview} alt={produit.nom} className="w-16 h-16 rounded-lg object-cover" />
+                            ) : (
+                              <div className="w-16 h-16 rounded-lg bg-slate-200 flex items-center justify-center">
+                                <ImageIcon className="w-6 h-6 text-slate-400" />
+                              </div>
+                            )}
+                            <label className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer">
+                              {produit.imagePreview ? 'Changer' : 'Ajouter une image'}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={e => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleProduitImageChange(produit.id, file);
+                                }}
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    <Button variant="outline" size="sm" onClick={addProduit} className="w-full">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Ajouter un produit
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -1200,6 +1384,12 @@ export function NouveauProjet() {
                         <span className="text-slate-500">Conditions</span>
                         <span className="font-medium text-slate-900">{conditions.length}</span>
                       </div>
+                      {produitsEnabled && produits.length > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Produits</span>
+                          <span className="font-medium text-slate-900">{produits.length}</span>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
