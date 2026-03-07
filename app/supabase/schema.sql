@@ -86,7 +86,10 @@ CREATE TABLE projets (
     nombre_retenus INTEGER DEFAULT 0,
     
     -- Conditions d'éligibilité
-    conditions_eligibilite JSONB DEFAULT '[]'
+    conditions_eligibilite JSONB DEFAULT '[]',
+
+    -- Metadata (couleurs theme, etc.)
+    metadata JSONB DEFAULT '{}'
 );
 
 -- Table des documents requis par projet
