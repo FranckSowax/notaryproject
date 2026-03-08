@@ -22,6 +22,7 @@ import { DocumentsGenerationPage } from '@/pages/dashboard/DocumentsGenerationPa
 import { LandingPage } from '@/pages/landing/LandingPage';
 import { BolokoboueLanding } from '@/pages/landing/BolokoboueLanding';
 import { BookingPage } from '@/pages/public/BookingPage';
+import { CABINET_DEFAULT } from '@/lib/cabinetDefaults';
 
 // Layout pour le dashboard
 function DashboardLayout() {
@@ -29,7 +30,7 @@ function DashboardLayout() {
 
   const cabinetName = user
     ? `${user.prenom} ${user.nom}`
-    : 'Cabinet Notarial';
+    : CABINET_DEFAULT.nom;
 
   const handleLogout = async () => {
     await signOut();

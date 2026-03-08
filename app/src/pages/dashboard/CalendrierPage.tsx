@@ -16,6 +16,7 @@ import { useProjets, useCandidats, useCurrentCabinet } from '@/hooks/useSupabase
 import { DemoBanner } from '@/components/ui/DemoBanner';
 import { DEMO_RDVS } from '@/lib/demoData';
 import { useSendBookingRequest } from '@/hooks/useBooking';
+import { CABINET_DEFAULT } from '@/lib/cabinetDefaults';
 import { toast } from 'sonner';
 
 const TYPE_COLORS: Record<string, string> = {
@@ -107,10 +108,10 @@ export function CalendrierPage() {
         typeRdv: bookingForm.typeRdv,
         creneaux: bookingSlots,
         cabinetId: cabinetId || '',
-        cabinetNom: cabinet?.nom || `${user?.prenom} ${user?.nom}`,
-        cabinetAdresse: cabinet?.adresse || '',
-        cabinetVille: cabinet?.ville || '',
-        cabinetTelephone: cabinet?.telephone || '',
+        cabinetNom: cabinet?.nom || CABINET_DEFAULT.nom,
+        cabinetAdresse: cabinet?.adresse || CABINET_DEFAULT.adresse,
+        cabinetVille: cabinet?.ville || CABINET_DEFAULT.ville,
+        cabinetTelephone: cabinet?.telephone || CABINET_DEFAULT.telephone,
         lienMaps: bookingForm.lienMaps,
       });
       toast.success('Demande de RDV envoyee par WhatsApp');

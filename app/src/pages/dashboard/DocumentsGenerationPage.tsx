@@ -13,6 +13,7 @@ import {
   generateConvocation,
   generateRecu,
 } from '@/lib/documentTemplates';
+import { CABINET_DEFAULT } from '@/lib/cabinetDefaults';
 
 const TEMPLATES = [
   { id: 'attestation', label: 'Attestation de Reservation', icon: FileText },
@@ -40,9 +41,13 @@ export function DocumentsGenerationPage() {
   const [paiementRef, setPaiementRef] = useState('');
   const [previewHtml, setPreviewHtml] = useState<string>('');
 
-  const cabinet = user
-    ? { nom: `${user.prenom} ${user.nom}`, adresse: '', ville: '', telephone: '', email: user.email }
-    : { nom: 'Cabinet Notarial', adresse: '', ville: '', telephone: '', email: '' };
+  const cabinet = {
+    nom: CABINET_DEFAULT.nom,
+    adresse: CABINET_DEFAULT.adresse,
+    ville: CABINET_DEFAULT.ville,
+    telephone: CABINET_DEFAULT.telephone,
+    email: user?.email || CABINET_DEFAULT.email,
+  };
 
   const selectedCandidat = candidats.find(c => c.id === selectedCandidatId);
 

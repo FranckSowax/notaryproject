@@ -1,3 +1,5 @@
+import { CABINET_DEFAULT } from './cabinetDefaults';
+
 const fmt = (n: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XAF', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
 const today = () => new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -20,7 +22,12 @@ const baseStyle = `
 `;
 
 function header(cabinet: any) {
-  return `<div class="header"><h1>${cabinet?.nom || 'Cabinet Notarial'}</h1><p>${cabinet?.adresse || ''} ${cabinet?.ville || ''}</p><p>Tel: ${cabinet?.telephone || ''} | Email: ${cabinet?.email || ''}</p></div>`;
+  const nom = cabinet?.nom || CABINET_DEFAULT.nom;
+  const adresse = cabinet?.adresse || CABINET_DEFAULT.adresse;
+  const ville = cabinet?.ville || CABINET_DEFAULT.ville;
+  const tel = cabinet?.telephone || CABINET_DEFAULT.telephone;
+  const email = cabinet?.email || CABINET_DEFAULT.email;
+  return `<div class="header"><h1>${nom}</h1><p>${adresse}, ${ville}</p><p>Tel: ${tel} | Email: ${email}</p></div>`;
 }
 
 export function generateAttestation(candidat: any, projet: any, cabinet: any): string {
