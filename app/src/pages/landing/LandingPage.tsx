@@ -1052,7 +1052,7 @@ REGLES:
             </a>
           </div>
           <div className="mt-8 pt-8 border-t border-slate-800 text-center text-slate-500 text-sm">
-            &copy; {new Date().getFullYear()} {projet.titre}. Tous droits reserves. Propulse par NotarialPro.
+            &copy; {new Date().getFullYear()} {projet.titre}. Tous droits reserves. Propulse par PPEO.
           </div>
         </div>
       </footer>

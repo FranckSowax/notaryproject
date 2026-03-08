@@ -30,7 +30,7 @@ export const handler: Handler = async (event) => {
     } = JSON.parse(event.body || '{}');
 
     const WHAPI_TOKEN = process.env.WHAPI_TOKEN;
-    const APP_URL = process.env.VITE_APP_URL || process.env.URL || 'https://notarialpro.netlify.app';
+    const APP_URL = process.env.VITE_APP_URL || process.env.URL || 'https://ppeo.netlify.app';
 
     if (!WHAPI_TOKEN) {
       return { statusCode: 500, headers, body: JSON.stringify({ success: false, message: 'WHAPI_TOKEN non configure' }) };

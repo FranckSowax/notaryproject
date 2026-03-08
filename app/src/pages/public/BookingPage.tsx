@@ -325,7 +325,7 @@ export function BookingPage() {
         </div>
 
         <p className="text-xs text-slate-400 text-center pb-4">
-          Propulse par NotarialPro
+          Propulse par PPEO
         </p>
       </div>
     </div>

@@ -74,7 +74,7 @@ export function useStatistiques(cabinetId?: string) {
 }
 
 export function generateCSV(stats: StatistiquesAvancees): string {
-  const l: string[] = ['Statistiques NotarialPro', '',
+  const l: string[] = ['Statistiques PPEO', '',
     '--- KPI ---', `Projets actifs;${stats.projetsActifs}`, `Total candidats;${stats.totalCandidats}`, `Taux conversion;${stats.tauxConversion}%`, `Delai moyen (j);${stats.delaiMoyenTraitement}`, '',
     '--- Par statut ---', 'Statut;Nombre'];
   Object.entries(stats.candidatsParStatut).forEach(([k, v]) => l.push(`${k};${v}`));

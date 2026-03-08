@@ -46,7 +46,7 @@ function SidebarContent({ cabinetName, onLogout, onNavClick }: SidebarProps & { 
             <Building2 className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="font-bold text-lg">NotarialPro</h1>
+            <h1 className="font-bold text-lg">PPEO</h1>
             <p className="text-xs text-slate-400 truncate max-w-[140px]">{cabinetName}</p>
           </div>
         </div>
@@ -114,7 +114,7 @@ export function Sidebar({ cabinetName, onLogout }: SidebarProps) {
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <Building2 className="w-4 h-4" />
           </div>
-          <span className="font-bold">NotarialPro</span>
+          <span className="font-bold">PPEO</span>
           <span className="text-xs text-slate-400 truncate max-w-[120px]">- {cabinetName}</span>
         </div>
       </div>

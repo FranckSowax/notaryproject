@@ -80,10 +80,10 @@ export function LoginPage() {
         {/* Logo et branding */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <span className="text-white text-2xl font-bold">N</span>
+            <span className="text-white text-2xl font-bold">P</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">NotarialPro</h1>
-          <p className="text-slate-500 mt-1">Connectez-vous a votre espace</p>
+          <h1 className="text-2xl font-bold text-slate-900">PPEO</h1>
+          <p className="text-slate-500 mt-1">Plateforme Projet Etude Ogoula</p>
         </div>
 
         <Card className="shadow-lg border-0">
@@ -231,7 +231,7 @@ export function LoginPage() {
         </Card>
 
         <p className="text-center text-xs text-slate-400 mt-6">
-          NotarialPro - Gestion notariale professionnelle
+          PPEO - Plateforme Projet Etude Ogoula
         </p>
       </div>
     </div>

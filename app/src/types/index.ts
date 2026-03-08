@@ -1,4 +1,4 @@
-// Types pour la plateforme NotarialPro
+// Types pour la plateforme PPEO (Plateforme Projet Etude Ogoula)
 
 export interface ProjetImmobilier {
   id: string;

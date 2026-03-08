@@ -103,7 +103,7 @@ function LandingPreview({
           <div className="w-3 h-3 rounded-full bg-green-400" />
         </div>
         <div className="flex-1 bg-white rounded-md px-3 py-1 text-xs text-slate-400 truncate mx-4">
-          notarialpro.ga/p/{titre ? generateSlug(titre) : 'mon-projet'}
+          ppeo.ga/p/{titre ? generateSlug(titre) : 'mon-projet'}
         </div>
       </div>
 
