@@ -9,7 +9,9 @@ import {
   Building2,
   LogOut,
   PlusCircle,
-  Menu
+  Menu,
+  Calendar,
+  BarChart3,
 } from 'lucide-react';
 import {
   Sheet,
@@ -28,6 +30,8 @@ const navItems = [
   { to: '/dashboard/projets', icon: FolderOpen, label: 'Mes Projets' },
   { to: '/dashboard/nouveau-projet', icon: PlusCircle, label: 'Nouveau Projet' },
   { to: '/dashboard/candidats', icon: Users, label: 'Candidats' },
+  { to: '/dashboard/calendrier', icon: Calendar, label: 'Calendrier' },
+  { to: '/dashboard/statistiques', icon: BarChart3, label: 'Statistiques' },
   { to: '/dashboard/messages', icon: MessageSquare, label: 'Messages' },
   { to: '/dashboard/parametres', icon: Settings, label: 'Parametres' },
 ];

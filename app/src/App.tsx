@@ -13,6 +13,12 @@ import { EditProjet } from '@/pages/dashboard/EditProjet';
 import { CandidatsList } from '@/pages/dashboard/CandidatsList';
 import { MessagesPage } from '@/pages/dashboard/MessagesPage';
 import { ParametresPage } from '@/pages/dashboard/ParametresPage';
+import { PipelinePage } from '@/pages/dashboard/PipelinePage';
+import { CandidatDetailPage } from '@/pages/dashboard/CandidatDetailPage';
+import { FinancesPage } from '@/pages/dashboard/FinancesPage';
+import { CalendrierPage } from '@/pages/dashboard/CalendrierPage';
+import { StatistiquesPage } from '@/pages/dashboard/StatistiquesPage';
+import { DocumentsGenerationPage } from '@/pages/dashboard/DocumentsGenerationPage';
 import { LandingPage } from '@/pages/landing/LandingPage';
 import { BolokoboueLanding } from '@/pages/landing/BolokoboueLanding';
 
@@ -61,6 +67,12 @@ function App() {
               <Route path="/dashboard/projets/:projetId" element={<EditProjet />} />
               <Route path="/dashboard/candidats" element={<CandidatsList />} />
               <Route path="/dashboard/projets/:projetId/candidats" element={<CandidatsList />} />
+              <Route path="/dashboard/projets/:projetId/pipeline" element={<PipelinePage />} />
+              <Route path="/dashboard/projets/:projetId/candidats/:candidatId" element={<CandidatDetailPage />} />
+              <Route path="/dashboard/projets/:projetId/finances" element={<FinancesPage />} />
+              <Route path="/dashboard/projets/:projetId/documents" element={<DocumentsGenerationPage />} />
+              <Route path="/dashboard/calendrier" element={<CalendrierPage />} />
+              <Route path="/dashboard/statistiques" element={<StatistiquesPage />} />
               <Route path="/dashboard/messages" element={<MessagesPage />} />
               <Route path="/dashboard/parametres" element={<ParametresPage />} />
             </Route>
