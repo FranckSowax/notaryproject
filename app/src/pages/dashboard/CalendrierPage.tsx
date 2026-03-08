@@ -7,14 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, Plus, Calendar, Clock, MessageCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar, Clock, MessageCircle, Send, X, Loader2 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isSameDay, isSameMonth, startOfWeek, endOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRendezVous, useCreateRendezVous, type RendezVous } from '@/hooks/useCalendrier';
-import { useProjets, useCandidats } from '@/hooks/useSupabase';
+import { useProjets, useCandidats, useCurrentCabinet } from '@/hooks/useSupabase';
 import { DemoBanner } from '@/components/ui/DemoBanner';
 import { DEMO_RDVS } from '@/lib/demoData';
+import { useSendBookingRequest } from '@/hooks/useBooking';
+import { toast } from 'sonner';
 
 const TYPE_COLORS: Record<string, string> = {
   verification: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -39,7 +41,19 @@ export function CalendrierPage() {
   const { candidats } = useCandidats(selectedProjet || undefined);
   const { createRdv, loading: creating } = useCreateRendezVous();
 
+  const { cabinet } = useCurrentCabinet(cabinetId);
+  const { sendRequest, loading: sendingBooking } = useSendBookingRequest();
+
   const [form, setForm] = useState({ candidatId: '', typeRdv: 'verification' as RendezVous['metadata']['type_rdv'], dateRdv: '', heure: '09:00', notes: '', description: '' });
+
+  // Booking request state
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [bookingProjet, setBookingProjet] = useState('');
+  const { candidats: bookingCandidats } = useCandidats(bookingProjet || undefined);
+  const [bookingForm, setBookingForm] = useState({ candidatId: '', typeRdv: 'verification', lienMaps: '' });
+  const [bookingSlots, setBookingSlots] = useState<{ date: string; heures: string[] }[]>([]);
+  const [newSlotDate, setNewSlotDate] = useState('');
+  const [newSlotHeure, setNewSlotHeure] = useState('09:00');
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -61,6 +75,55 @@ export function CalendrierPage() {
     refresh();
   };
 
+  const addSlot = () => {
+    if (!newSlotDate || !newSlotHeure) return;
+    setBookingSlots(prev => {
+      const existing = prev.find(s => s.date === newSlotDate);
+      if (existing) {
+        if (existing.heures.includes(newSlotHeure)) return prev;
+        return prev.map(s => s.date === newSlotDate ? { ...s, heures: [...s.heures, newSlotHeure].sort() } : s);
+      }
+      return [...prev, { date: newSlotDate, heures: [newSlotHeure] }].sort((a, b) => a.date.localeCompare(b.date));
+    });
+    setNewSlotHeure('09:00');
+  };
+
+  const removeSlot = (date: string, heure: string) => {
+    setBookingSlots(prev => {
+      const updated = prev.map(s => s.date === date ? { ...s, heures: s.heures.filter(h => h !== heure) } : s).filter(s => s.heures.length > 0);
+      return updated;
+    });
+  };
+
+  const handleSendBooking = async () => {
+    const candidat = bookingCandidats.find(c => c.id === bookingForm.candidatId);
+    if (!candidat || !bookingProjet || bookingSlots.length === 0) return;
+    try {
+      await sendRequest({
+        candidatId: candidat.id,
+        candidatNom: `${candidat.prenom} ${candidat.nom}`,
+        candidatPhone: candidat.telephone || '',
+        projetId: bookingProjet,
+        typeRdv: bookingForm.typeRdv,
+        creneaux: bookingSlots,
+        cabinetId: cabinetId || '',
+        cabinetNom: cabinet?.nom || `${user?.prenom} ${user?.nom}`,
+        cabinetAdresse: cabinet?.adresse || '',
+        cabinetVille: cabinet?.ville || '',
+        cabinetTelephone: cabinet?.telephone || '',
+        lienMaps: bookingForm.lienMaps,
+      });
+      toast.success('Demande de RDV envoyee par WhatsApp');
+      setBookingOpen(false);
+      setBookingForm({ candidatId: '', typeRdv: 'verification', lienMaps: '' });
+      setBookingSlots([]);
+      setBookingProjet('');
+      refresh();
+    } catch {
+      toast.error('Erreur lors de l\'envoi de la demande');
+    }
+  };
+
   const rdvsAVenir = rdvs
     .filter(r => r.metadata?.date_rdv >= format(new Date(), 'yyyy-MM-dd'))
     .sort((a, b) => a.metadata.date_rdv.localeCompare(b.metadata.date_rdv));
@@ -69,7 +132,12 @@ export function CalendrierPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-800">Calendrier</h1>
-        <Button onClick={() => setDialogOpen(true)}><Plus className="w-4 h-4 mr-2" />Nouveau RDV</Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" className="border-green-200 text-green-700 hover:bg-green-50" onClick={() => setBookingOpen(true)}>
+            <Send className="w-4 h-4 mr-2" />Proposer un RDV WhatsApp
+          </Button>
+          <Button onClick={() => setDialogOpen(true)}><Plus className="w-4 h-4 mr-2" />Nouveau RDV</Button>
+        </div>
       </div>
 
       {isDemo && <DemoBanner />}
@@ -179,6 +247,73 @@ export function CalendrierPage() {
             <div><Label>Notes</Label><Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} /></div>
             <Button className="w-full" onClick={handleCreate} disabled={creating || !selectedProjet || !form.candidatId || !form.dateRdv}>
               {creating ? 'Creation...' : 'Creer le RDV'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Booking WhatsApp Dialog */}
+      <Dialog open={bookingOpen} onOpenChange={setBookingOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><Send className="w-5 h-5 text-green-600" />Proposer un RDV via WhatsApp</DialogTitle></DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div><Label>Projet</Label>
+              <Select value={bookingProjet} onValueChange={v => { setBookingProjet(v); setBookingForm(f => ({ ...f, candidatId: '' })); }}>
+                <SelectTrigger><SelectValue placeholder="Choisir un projet" /></SelectTrigger>
+                <SelectContent>{projets.map(p => <SelectItem key={p.id} value={p.id}>{p.titre}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Candidat</Label>
+              <Select value={bookingForm.candidatId} onValueChange={v => setBookingForm(f => ({ ...f, candidatId: v }))}>
+                <SelectTrigger><SelectValue placeholder="Choisir un candidat" /></SelectTrigger>
+                <SelectContent>{bookingCandidats.map(c => <SelectItem key={c.id} value={c.id}>{c.prenom} {c.nom}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Type de RDV</Label>
+              <Select value={bookingForm.typeRdv} onValueChange={v => setBookingForm(f => ({ ...f, typeRdv: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="verification">Verification</SelectItem>
+                  <SelectItem value="signature">Signature</SelectItem>
+                  <SelectItem value="remise_cles">Remise des cles</SelectItem>
+                  <SelectItem value="autre">Autre</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Slot builder */}
+            <div>
+              <Label>Creneaux proposes</Label>
+              <div className="flex items-end gap-2 mt-1">
+                <div className="flex-1"><Input type="date" value={newSlotDate} onChange={e => setNewSlotDate(e.target.value)} /></div>
+                <div className="w-28"><Input type="time" value={newSlotHeure} onChange={e => setNewSlotHeure(e.target.value)} /></div>
+                <Button type="button" size="sm" variant="outline" onClick={addSlot} disabled={!newSlotDate}><Plus className="w-4 h-4" /></Button>
+              </div>
+              {bookingSlots.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {bookingSlots.map(slot => (
+                    <div key={slot.date} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg">
+                      <span className="text-sm font-medium text-slate-700">{format(new Date(slot.date + 'T00:00'), 'EEEE d MMMM', { locale: fr })}</span>
+                      <div className="flex flex-wrap gap-1 flex-1">
+                        {slot.heures.map(h => (
+                          <Badge key={h} variant="secondary" className="cursor-pointer hover:bg-red-100 hover:text-red-700 transition-colors" onClick={() => removeSlot(slot.date, h)}>
+                            {h} <X className="w-3 h-3 ml-1" />
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {bookingSlots.length === 0 && <p className="text-xs text-slate-400 mt-2">Ajoutez au moins un creneau</p>}
+            </div>
+
+            <div><Label>Lien Google Maps (optionnel)</Label>
+              <Input value={bookingForm.lienMaps} onChange={e => setBookingForm(f => ({ ...f, lienMaps: e.target.value }))} placeholder="https://maps.google.com/..." />
+            </div>
+
+            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={handleSendBooking} disabled={sendingBooking || !bookingProjet || !bookingForm.candidatId || bookingSlots.length === 0}>
+              {sendingBooking ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Envoi en cours...</> : <><Send className="w-4 h-4 mr-2" />Envoyer via WhatsApp</>}
             </Button>
           </div>
         </DialogContent>

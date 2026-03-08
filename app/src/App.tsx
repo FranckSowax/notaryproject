@@ -21,6 +21,7 @@ import { StatistiquesPage } from '@/pages/dashboard/StatistiquesPage';
 import { DocumentsGenerationPage } from '@/pages/dashboard/DocumentsGenerationPage';
 import { LandingPage } from '@/pages/landing/LandingPage';
 import { BolokoboueLanding } from '@/pages/landing/BolokoboueLanding';
+import { BookingPage } from '@/pages/public/BookingPage';
 
 // Layout pour le dashboard
 function DashboardLayout() {
@@ -54,6 +55,7 @@ function App() {
           {/* Landing pages publiques */}
           <Route path="/p/:slug" element={<LandingPage />} />
           <Route path="/bolokoboue" element={<BolokoboueLanding />} />
+          <Route path="/rdv/:token" element={<BookingPage />} />
 
           {/* Auth */}
           <Route path="/login" element={<LoginPage />} />
