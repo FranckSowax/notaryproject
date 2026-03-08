@@ -9,7 +9,10 @@ import {
   PauseCircle,
   PlayCircle,
   Edit,
-  ExternalLink
+  ExternalLink,
+  Kanban,
+  Wallet,
+  FileText,
 } from 'lucide-react';
 import { formatFCFA } from '@/lib/formatCurrency';
 import {
@@ -86,6 +89,24 @@ export function ProjetCard({ projet, onToggleStatut }: ProjetCardProps) {
                   Voir la page
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to={`/dashboard/projets/${projet.id}/pipeline`}>
+                  <Kanban className="w-4 h-4 mr-2" />
+                  Pipeline
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to={`/dashboard/projets/${projet.id}/finances`}>
+                  <Wallet className="w-4 h-4 mr-2" />
+                  Finances
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to={`/dashboard/projets/${projet.id}/documents`}>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Documents
+                </Link>
+              </DropdownMenuItem>
               {projet.statut === 'actif' ? (
                 <DropdownMenuItem onClick={() => onToggleStatut(projet.id, 'suspendu')}>
                   <PauseCircle className="w-4 h-4 mr-2" />
@@ -140,6 +161,31 @@ export function ProjetCard({ projet, onToggleStatut }: ProjetCardProps) {
             className="text-sm text-blue-600 hover:text-blue-700 font-medium"
           >
             Voir les candidats
+          </Link>
+        </div>
+
+        {/* Quick access buttons */}
+        <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100 mt-3">
+          <Link
+            to={`/dashboard/projets/${projet.id}/pipeline`}
+            className="flex items-center justify-center gap-1.5 px-2 py-2 text-xs font-medium text-slate-600 bg-slate-50 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors"
+          >
+            <Kanban className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Pipeline</span>
+          </Link>
+          <Link
+            to={`/dashboard/projets/${projet.id}/finances`}
+            className="flex items-center justify-center gap-1.5 px-2 py-2 text-xs font-medium text-slate-600 bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors"
+          >
+            <Wallet className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Finances</span>
+          </Link>
+          <Link
+            to={`/dashboard/projets/${projet.id}/documents`}
+            className="flex items-center justify-center gap-1.5 px-2 py-2 text-xs font-medium text-slate-600 bg-slate-50 hover:bg-violet-50 hover:text-violet-700 rounded-lg transition-colors"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Documents</span>
           </Link>
         </div>
       </div>
