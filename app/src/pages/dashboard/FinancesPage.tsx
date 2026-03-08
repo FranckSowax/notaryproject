@@ -10,11 +10,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ArrowLeft, Banknote, TrendingUp, CheckCircle, Plus } from 'lucide-react';
 import { useFinanceCandidats, useEnregistrerPaiement, type CandidatFinance } from '@/hooks/useFinances';
 import { formatFCFA } from '@/lib/formatCurrency';
+import { DemoBanner } from '@/components/ui/DemoBanner';
+import { DEMO_FINANCES } from '@/lib/demoData';
 
 export function FinancesPage() {
   const { projetId } = useParams<{ projetId: string }>();
   const navigate = useNavigate();
-  const { data, loading, refresh } = useFinanceCandidats(projetId);
+  const { data: realData, loading, refresh } = useFinanceCandidats(projetId);
+  const isDemo = !loading && realData.length === 0;
+  const data = isDemo ? DEMO_FINANCES : realData;
   const { enregistrer, loading: enregistrant } = useEnregistrerPaiement();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selected, setSelected] = useState<CandidatFinance | null>(null);
@@ -43,6 +47,8 @@ export function FinancesPage() {
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}><ArrowLeft className="w-5 h-5" /></Button>
         <h1 className="text-2xl font-bold text-slate-800">Suivi financier</h1>
       </div>
+
+      {isDemo && <DemoBanner />}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card><CardContent className="p-4"><div className="flex items-center gap-3"><div className="p-2 bg-blue-100 rounded-lg"><Banknote className="w-5 h-5 text-blue-600" /></div><div><p className="text-xs text-slate-500">Montant total</p><p className="text-lg font-bold">{formatFCFA(totalPrix)}</p></div></div></CardContent></Card>

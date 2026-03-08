@@ -13,6 +13,8 @@ import { fr } from 'date-fns/locale';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRendezVous, useCreateRendezVous, type RendezVous } from '@/hooks/useCalendrier';
 import { useProjets, useCandidats } from '@/hooks/useSupabase';
+import { DemoBanner } from '@/components/ui/DemoBanner';
+import { DEMO_RDVS } from '@/lib/demoData';
 
 const TYPE_COLORS: Record<string, string> = {
   verification: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -28,7 +30,9 @@ export function CalendrierPage() {
   const { user } = useAuth();
   const cabinetId = (user as any)?.cabinet_id || null;
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const { rdvs, loading, refresh } = useRendezVous(cabinetId, currentMonth);
+  const { rdvs: realRdvs, loading, refresh } = useRendezVous(cabinetId, currentMonth);
+  const isDemo = !loading && realRdvs.length === 0;
+  const rdvs = isDemo ? DEMO_RDVS : realRdvs;
   const { projets } = useProjets(cabinetId);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedProjet, setSelectedProjet] = useState('');
@@ -67,6 +71,8 @@ export function CalendrierPage() {
         <h1 className="text-2xl font-bold text-slate-800">Calendrier</h1>
         <Button onClick={() => setDialogOpen(true)}><Plus className="w-4 h-4 mr-2" />Nouveau RDV</Button>
       </div>
+
+      {isDemo && <DemoBanner />}
 
       <Card>
         <CardHeader>

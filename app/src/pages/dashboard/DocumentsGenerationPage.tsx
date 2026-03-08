@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, FileText, Printer, Eye } from 'lucide-react';
 import { usePipelineCandidats } from '@/hooks/usePipeline';
 import { useAuth } from '@/contexts/AuthContext';
+import { DemoBanner } from '@/components/ui/DemoBanner';
+import { DEMO_CANDIDATS } from '@/lib/demoData';
 import {
   generateAttestation,
   generatePromesse,
@@ -25,8 +27,10 @@ export function DocumentsGenerationPage() {
   const { projetId } = useParams<{ projetId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { candidats, loading } = usePipelineCandidats(projetId);
+  const { candidats: realCandidats, loading } = usePipelineCandidats(projetId);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const isDemo = !loading && realCandidats.length === 0;
+  const candidats = isDemo ? DEMO_CANDIDATS : realCandidats;
 
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>('attestation');
   const [selectedCandidatId, setSelectedCandidatId] = useState<string>('');
@@ -101,6 +105,8 @@ export function DocumentsGenerationPage() {
           <p className="text-slate-500">Attestations, promesses, convocations et recus</p>
         </div>
       </div>
+
+      {isDemo && <DemoBanner />}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Configuration */}

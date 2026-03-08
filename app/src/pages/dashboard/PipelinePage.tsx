@@ -13,6 +13,8 @@ import {
   type EtapeDossier,
 } from '@/hooks/usePipeline';
 import type { Candidat } from '@/types';
+import { DemoBanner } from '@/components/ui/DemoBanner';
+import { DEMO_CANDIDATS } from '@/lib/demoData';
 
 function joursDepuis(dateStr: string): number {
   return Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24));
@@ -21,10 +23,13 @@ function joursDepuis(dateStr: string): number {
 export function PipelinePage() {
   const { projetId } = useParams<{ projetId: string }>();
   const navigate = useNavigate();
-  const { candidats, loading } = usePipelineCandidats(projetId);
+  const { candidats: realCandidats, loading } = usePipelineCandidats(projetId);
   const { updateEtape } = useUpdateEtape();
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const dragOverRef = useRef<EtapeDossier | null>(null);
+
+  const isDemo = !loading && realCandidats.length === 0;
+  const candidats = isDemo ? DEMO_CANDIDATS : realCandidats;
 
   const candidatsParEtape = ETAPES_CONFIG.reduce((acc, etape) => {
     acc[etape.id] = candidats.filter(c => getCandidatEtape(c) === etape.id);
@@ -65,6 +70,8 @@ export function PipelinePage() {
           <p className="text-slate-500">{candidats.length} candidat{candidats.length > 1 ? 's' : ''} retenu{candidats.length > 1 ? 's' : ''}</p>
         </div>
       </div>
+
+      {isDemo && <DemoBanner />}
 
       <div className="flex gap-4 overflow-x-auto pb-4">
         {ETAPES_CONFIG.map(etape => (

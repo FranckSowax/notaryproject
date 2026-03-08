@@ -6,6 +6,8 @@ import { BarChart3, Users, TrendingUp, Clock, Download, AlertTriangle } from 'lu
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStatistiques, generateCSV } from '@/hooks/useStatistiques';
+import { DemoBanner } from '@/components/ui/DemoBanner';
+import { DEMO_STATS } from '@/lib/demoData';
 
 const STATUT_COLORS: Record<string, string> = {
   nouveau: '#3b82f6', en_cours: '#f59e0b', retenu: '#10b981', refuse: '#ef4444', desiste: '#6b7280',
@@ -14,7 +16,9 @@ const STATUT_COLORS: Record<string, string> = {
 export function StatistiquesPage() {
   const { user } = useAuth();
   const cabinetId = (user as any)?.cabinet_id;
-  const { stats, loading } = useStatistiques(cabinetId);
+  const { stats: realStats, loading } = useStatistiques(cabinetId);
+  const isDemo = !loading && (!realStats || realStats.totalCandidats === 0);
+  const stats = isDemo ? DEMO_STATS : realStats;
 
   const exportCSV = () => {
     if (!stats) return;
@@ -39,6 +43,8 @@ export function StatistiquesPage() {
         <h1 className="text-2xl font-bold text-slate-800">Statistiques</h1>
         <Button variant="outline" onClick={exportCSV}><Download className="w-4 h-4 mr-2" />Exporter CSV</Button>
       </div>
+
+      {isDemo && <DemoBanner />}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card><CardContent className="p-4"><div className="flex items-center gap-3"><div className="p-2 bg-blue-100 rounded-lg"><BarChart3 className="w-5 h-5 text-blue-600" /></div><div><p className="text-xs text-slate-500">Projets actifs</p><p className="text-2xl font-bold">{stats.projetsActifs}</p></div></div></CardContent></Card>
