@@ -3,7 +3,6 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { NotFoundPage } from '@/components/NotFoundPage';
-import { LoginPage } from '@/pages/auth/LoginPage';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { Toaster } from '@/components/ui/sonner';
 import { DashboardHome } from '@/pages/dashboard/DashboardHome';
@@ -58,8 +57,8 @@ function App() {
           <Route path="/bolokoboue" element={<BolokoboueLanding />} />
           <Route path="/rdv/:token" element={<BookingPage />} />
 
-          {/* Auth */}
-          <Route path="/login" element={<LoginPage />} />
+          {/* Auth - desactivee temporairement */}
+          <Route path="/login" element={<Navigate to="/dashboard" replace />} />
 
           {/* Dashboard - routes protegees */}
           <Route element={<ProtectedRoute />}>
