@@ -21,6 +21,11 @@ import {
   Upload,
   CircleAlert,
   Briefcase,
+  Menu,
+  Award,
+  Handshake,
+  ChevronRight,
+  Star,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,6 +36,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useProjetBySlug, useCreateCandidat, useChatbotConfig } from '@/hooks/useSupabase';
 import { supabase } from '@/lib/supabase';
 import { formatFCFA } from '@/lib/formatCurrency';
+import { CABINET_DEFAULT } from '@/lib/cabinetDefaults';
 import type { DocumentRequis, DocumentFourni, Produit } from '@/types';
 
 function getGoogleMapsEmbedUrl(lien: string | null | undefined): string | null {
@@ -55,6 +61,48 @@ function getThemeColors(projet: any): { primary: string; secondary: string } {
     primary: meta?.couleur_primaire || '#1e40af',
     secondary: meta?.couleur_secondaire || '#047857',
   };
+}
+
+/* ── useInView hook for scroll reveal ── */
+function useInView(options?: IntersectionObserverInit) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isInView, setIsInView] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.1, ...options },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, isInView };
+}
+
+/* ── ScrollReveal wrapper ── */
+function ScrollReveal({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const { ref, isInView } = useInView();
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        opacity: isInView ? 1 : 0,
+        transform: isInView ? 'translateY(0)' : 'translateY(32px)',
+        transition: `opacity 0.7s cubic-bezier(.22,1,.36,1) ${delay}ms, transform 0.7s cubic-bezier(.22,1,.36,1) ${delay}ms`,
+      }}
+    >
+      {children}
+    </div>
+  );
 }
 
 const SITUATIONS_MATRIMONIALES = [
@@ -128,6 +176,7 @@ export function LandingPage() {
 
   // Lightbox galerie
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   // Produits (parcelles) du projet
   const produits: Produit[] = useMemo(() => {
@@ -170,6 +219,19 @@ export function LandingPage() {
   });
   const [documents, setDocuments] = useState<Record<string, File>>({});
   const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  // Header scroll state
+  const [scrolled, setScrolled] = useState(false);
+  // Mobile menu
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // Details tab state
+  const [detailsTab, setDetailsTab] = useState<'caracteristiques' | 'documents' | 'conditions'>('caracteristiques');
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   // Scroll chat to bottom
   useEffect(() => {
@@ -495,362 +557,602 @@ REGLES:
       </p>
     ) : null;
 
+  // Price display helper
+  const displayPrice = hasProduits
+    ? formatFCFA(Math.min(...produits.map(pr => pr.prix)))
+    : projet.prix > 0
+    ? formatFCFA(projet.prix)
+    : null;
+
+  const images: string[] = p.images || [];
+
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* ========== HEADER FIXE ========== */}
-      <header className="fixed top-0 w-full z-50 bg-slate-50/95 backdrop-blur-lg border-b border-slate-200/50">
+      {/* ========== HEADER - Scroll-based opacity ========== */}
+      <header
+        className="fixed top-0 w-full z-50 transition-all duration-300"
+        style={{
+          backgroundColor: scrolled ? 'rgba(248,250,252,0.97)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(16px)' : 'none',
+          borderBottom: scrolled ? '1px solid rgba(226,232,240,0.5)' : '1px solid transparent',
+        }}
+      >
         <div className="container mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-xl"
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg"
               style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
             >
               {projet.titre?.charAt(0)?.toUpperCase() || 'P'}
             </div>
-            <span className="text-xl font-bold text-slate-800 hidden sm:block">{projet.titre}</span>
+            <span className={`text-xl font-bold hidden sm:block transition-colors duration-300 ${scrolled ? 'text-slate-800' : 'text-white'}`}>
+              {projet.titre}
+            </span>
           </div>
 
-          <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-600">
-            <a href="#presentation" className="hover:text-slate-900 transition">Le Projet</a>
-            {hasProduits && (
-              <a href="#parcelles" className="hover:text-slate-900 transition">Parcelles</a>
-            )}
-            <a href="#details" className="hover:text-slate-900 transition">Details</a>
-            {p.images && p.images.length > 0 && (
-              <a href="#galerie" className="hover:text-slate-900 transition">Galerie</a>
-            )}
-            {conditionsElig.length > 0 && (
-              <a href="#conditions" className="hover:text-slate-900 transition">Conditions</a>
-            )}
-            <a href="#contact" className="hover:text-slate-900 transition">Contact</a>
+          <nav className="hidden lg:flex items-center gap-8 text-sm font-medium">
+            {[
+              { href: '#presentation', label: 'Le Projet' },
+              ...(hasProduits ? [{ href: '#parcelles', label: 'Parcelles' }] : []),
+              { href: '#details', label: 'Details' },
+              ...(images.length > 0 ? [{ href: '#galerie', label: 'Galerie' }] : []),
+              ...(conditionsElig.length > 0 ? [{ href: '#conditions', label: 'Conditions' }] : []),
+              { href: '#contact', label: 'Contact' },
+            ].map(link => (
+              <a
+                key={link.href}
+                href={link.href}
+                className={`transition-colors duration-300 hover:opacity-100 ${scrolled ? 'text-slate-600 hover:text-slate-900' : 'text-white/80 hover:text-white'}`}
+              >
+                {link.label}
+              </a>
+            ))}
           </nav>
 
-          <Button
-            onClick={() => setFormOpen(true)}
-            className="text-white"
-            style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
-          >
-            S'inscrire
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => setFormOpen(true)}
+              className="text-white shadow-lg hidden sm:inline-flex"
+              style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+            >
+              S'inscrire
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+
+            {/* Mobile hamburger */}
+            <button
+              className="lg:hidden p-2 rounded-lg transition-colors"
+              style={{ color: scrolled ? colors.primary : '#fff' }}
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+          </div>
         </div>
+
+        {/* Mobile slide-out nav */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-[60]">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
+            <div
+              className="absolute top-0 right-0 h-full w-72 bg-white shadow-2xl p-6 flex flex-col"
+              style={{ animation: 'slideInRight 0.3s ease-out' }}
+            >
+              <div className="flex items-center justify-between mb-8">
+                <span className="text-lg font-bold text-slate-800">Menu</span>
+                <button onClick={() => setMobileMenuOpen(false)} className="p-1 rounded-lg hover:bg-slate-100">
+                  <X className="w-5 h-5 text-slate-500" />
+                </button>
+              </div>
+              <nav className="flex flex-col gap-1">
+                {[
+                  { href: '#presentation', label: 'Le Projet' },
+                  ...(hasProduits ? [{ href: '#parcelles', label: 'Parcelles' }] : []),
+                  { href: '#details', label: 'Details' },
+                  ...(images.length > 0 ? [{ href: '#galerie', label: 'Galerie' }] : []),
+                  ...(conditionsElig.length > 0 ? [{ href: '#conditions', label: 'Conditions' }] : []),
+                  { href: '#contact', label: 'Contact' },
+                ].map(link => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-50 font-medium transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4" style={{ color: colors.primary }} />
+                    {link.label}
+                  </a>
+                ))}
+              </nav>
+              <div className="mt-auto">
+                <Button
+                  onClick={() => { setMobileMenuOpen(false); setFormOpen(true); }}
+                  className="w-full text-white"
+                  style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+                >
+                  S'inscrire
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
-      {/* ========== HERO SECTION ========== */}
-      <section className="relative pt-32 pb-20 px-4 sm:px-6 overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl -z-10" style={{ backgroundColor: `${colors.primary}15` }} />
-        <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full blur-3xl -z-10" style={{ backgroundColor: `${colors.secondary}15` }} />
+      {/* ========== HERO SECTION - Full-screen immersive ========== */}
+      <section className="relative min-h-screen flex items-end overflow-hidden">
+        {/* Background image */}
+        {projet.banner_image ? (
+          <img
+            src={projet.banner_image}
+            alt={projet.titre}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <div
+            className="absolute inset-0"
+            style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+          />
+        )}
 
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="flex flex-col gap-8">
-              <div className="space-y-8">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
-                  {projet.type_bien === 'terrain' ? <Trees className="w-4 h-4" /> : <Home className="w-4 h-4" />}
-                  {typeBienLabel} {!hasProduits && projet.surface > 0 && `— ${projet.surface} m2`}
-                  {hasProduits && `— ${produits.length} offre${produits.length > 1 ? 's' : ''} disponible${produits.length > 1 ? 's' : ''}`}
-                </div>
+        {/* Animated gradient orbs */}
+        <div
+          className="absolute top-1/4 -left-32 w-96 h-96 rounded-full blur-3xl opacity-30"
+          style={{
+            backgroundColor: colors.primary,
+            animation: 'pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          }}
+        />
+        <div
+          className="absolute bottom-1/4 -right-32 w-80 h-80 rounded-full blur-3xl opacity-20"
+          style={{
+            backgroundColor: colors.secondary,
+            animation: 'pulse 10s cubic-bezier(0.4, 0, 0.6, 1) infinite 2s',
+          }}
+        />
 
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
-                  <span className="bg-clip-text text-transparent" style={{ backgroundImage: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}>
-                    {projet.titre}
-                  </span>
-                </h1>
+        {/* Dark gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 
-                {hasProduits ? (
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-lg text-slate-500">A partir de</span>
-                    <span className="text-4xl font-bold" style={{ color: colors.primary }}>
-                      {formatFCFA(Math.min(...produits.map(pr => pr.prix)))}
-                    </span>
-                  </div>
-                ) : projet.prix > 0 ? (
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-4xl font-bold" style={{ color: colors.primary }}>{formatFCFA(projet.prix)}</span>
-                  </div>
-                ) : null}
-
-                <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                  <Button
-                    size="lg"
-                    onClick={() => setFormOpen(true)}
-                    className="text-white text-lg"
-                    style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
-                  >
-                    S'inscrire
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={() => document.getElementById('details')?.scrollIntoView({ behavior: 'smooth' })}
-                  >
-                    Decouvrir le bien
-                  </Button>
-                </div>
+        {/* Hero content */}
+        <div className="relative w-full pb-8 pt-32">
+          <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
+            <div className="max-w-3xl mb-12">
+              <div
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-6 bg-white/15 backdrop-blur-md text-white border border-white/20"
+              >
+                {projet.type_bien === 'terrain' ? <Trees className="w-4 h-4" /> : <Home className="w-4 h-4" />}
+                {typeBienLabel} {!hasProduits && projet.surface > 0 && `-- ${projet.surface} m\u00B2`}
+                {hasProduits && `-- ${produits.length} offre${produits.length > 1 ? 's' : ''} disponible${produits.length > 1 ? 's' : ''}`}
               </div>
 
-              <div className="flex items-center gap-4 text-slate-500">
-                <MapPin className="w-5 h-5" style={{ color: colors.primary }} />
-                <span>{locationFull}</span>
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold leading-tight text-white mb-6">
+                {projet.titre}
+              </h1>
+
+              {displayPrice && (
+                <div className="flex items-baseline gap-3 mb-8">
+                  {hasProduits && <span className="text-lg text-white/70">A partir de</span>}
+                  <span className="text-4xl sm:text-5xl font-bold text-white">{displayPrice}</span>
+                  <span className="text-lg text-white/50">FCFA</span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-3 text-white/80 mb-8">
+                <MapPin className="w-5 h-5" />
+                <span className="text-lg">{locationFull}</span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button
+                  size="lg"
+                  onClick={() => setFormOpen(true)}
+                  className="text-white text-lg px-8 py-6 shadow-2xl"
+                  style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+                >
+                  S'inscrire maintenant
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => document.getElementById('details')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm px-8 py-6"
+                >
+                  Decouvrir le bien
+                </Button>
               </div>
             </div>
 
-            <div className="relative">
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-                {projet.banner_image ? (
-                  <img src={projet.banner_image} alt={projet.titre} className="w-full h-[500px] object-cover" />
-                ) : (
-                  <div className="w-full h-[500px]" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }} />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+            {/* Floating glass-morphism stat cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 max-w-2xl">
+              <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 text-white">
+                <Maximize className="w-5 h-5 mb-2 opacity-70" />
+                <p className="text-2xl font-bold">{projet.surface} m&sup2;</p>
+                <p className="text-sm text-white/60">Surface</p>
               </div>
-              <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-4 border border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${colors.primary}15` }}>
-                    <Maximize className="w-6 h-6" style={{ color: colors.primary }} />
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-800">{projet.surface} m2</p>
-                    <p className="text-sm text-slate-500">Surface</p>
-                  </div>
+              <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 text-white">
+                <Home className="w-5 h-5 mb-2 opacity-70" />
+                <p className="text-2xl font-bold">{typeBienLabel}</p>
+                <p className="text-sm text-white/60">Type de bien</p>
+              </div>
+              {displayPrice && (
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 text-white col-span-2 sm:col-span-1">
+                  <TrendingUp className="w-5 h-5 mb-2 opacity-70" />
+                  <p className="text-2xl font-bold truncate">{displayPrice}</p>
+                  <p className="text-sm text-white/60">{hasProduits ? 'A partir de' : 'Prix'}</p>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ========== PRESENTATION / POURQUOI INVESTIR ========== */}
+      {/* ========== TRUST BAR ========== */}
+      <ScrollReveal>
+        <section className="py-8 bg-white border-b border-slate-100">
+          <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+              {[
+                { icon: ShieldCheck, label: 'Notaire certifie', value: 'Garantie legale' },
+                { icon: Award, label: 'Titre foncier garanti', value: 'Securise 100%' },
+                { icon: Handshake, label: 'Accompagnement A-Z', value: 'Suivi complet' },
+                { icon: Scale, label: '0% commission cachee', value: 'Transparence totale' },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: `${colors.primary}10` }}
+                  >
+                    <item.icon className="w-5 h-5" style={{ color: colors.primary }} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-800 text-sm">{item.label}</p>
+                    <p className="text-xs text-slate-400">{item.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </ScrollReveal>
+
+      {/* ========== POURQUOI INVESTIR - Bento grid ========== */}
       <section id="presentation" className="py-24 bg-white">
         <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-6">Pourquoi choisir ce bien ?</h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">Emplacement strategique et accompagnement notarial de confiance.</p>
-          </div>
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <p className="text-sm font-semibold uppercase tracking-wider mb-3" style={{ color: colors.primary }}>Avantages</p>
+              <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-6">Pourquoi choisir ce bien ?</h2>
+              <p className="text-xl text-slate-500 max-w-3xl mx-auto">Emplacement strategique et accompagnement notarial de confiance.</p>
+            </div>
+          </ScrollReveal>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            <Card className="border-slate-200 hover:shadow-xl transition-all hover:-translate-y-1" style={{ background: `linear-gradient(135deg, ${colors.primary}05, ${colors.secondary}08)` }}>
-              <CardContent className="p-8">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-white" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* First card - spans 2 cols */}
+            <ScrollReveal className="sm:col-span-2" delay={0}>
+              <div
+                className="relative overflow-hidden rounded-3xl p-8 h-full border border-white/20 hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 cursor-default"
+                style={{
+                  background: `linear-gradient(135deg, ${colors.primary}12, ${colors.secondary}08)`,
+                  backdropFilter: 'blur(12px)',
+                }}
+              >
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-white shadow-lg"
+                  style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+                >
                   <MapPin className="w-7 h-7" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-3">Emplacement</h3>
-                <p className="text-slate-600">{projet.ville}{p.quartier ? `, ${p.quartier}` : ''}</p>
-              </CardContent>
-            </Card>
+                <h3 className="text-2xl font-bold text-slate-800 mb-3">Emplacement Premium</h3>
+                <p className="text-slate-600 text-lg leading-relaxed">
+                  {projet.ville}{p.quartier ? `, ${p.quartier}` : ''} -- une zone en plein developpement avec un fort potentiel de valorisation.
+                </p>
+              </div>
+            </ScrollReveal>
 
-            <Card className="border-slate-200 hover:shadow-xl transition-all hover:-translate-y-1" style={{ background: `linear-gradient(135deg, ${colors.primary}05, ${colors.secondary}08)` }}>
-              <CardContent className="p-8">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-white" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}>
+            <ScrollReveal delay={100}>
+              <div
+                className="relative overflow-hidden rounded-3xl p-8 h-full border border-white/20 hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 cursor-default"
+                style={{
+                  background: `linear-gradient(135deg, ${colors.primary}08, ${colors.secondary}05)`,
+                  backdropFilter: 'blur(12px)',
+                }}
+              >
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-white shadow-lg"
+                  style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+                >
                   <ShieldCheck className="w-7 h-7" />
                 </div>
                 <h3 className="text-xl font-bold text-slate-800 mb-3">Securite Juridique</h3>
-                <p className="text-slate-600">Accompagnement notarial complet</p>
-              </CardContent>
-            </Card>
+                <p className="text-slate-600">Accompagnement notarial complet et titre foncier garanti</p>
+              </div>
+            </ScrollReveal>
 
-            <Card className="border-slate-200 hover:shadow-xl transition-all hover:-translate-y-1" style={{ background: `linear-gradient(135deg, ${colors.primary}05, ${colors.secondary}08)` }}>
-              <CardContent className="p-8">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-white" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}>
+            <ScrollReveal delay={200}>
+              <div
+                className="relative overflow-hidden rounded-3xl p-8 h-full border border-white/20 hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 cursor-default"
+                style={{
+                  background: `linear-gradient(135deg, ${colors.primary}08, ${colors.secondary}05)`,
+                  backdropFilter: 'blur(12px)',
+                }}
+              >
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-white shadow-lg"
+                  style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+                >
                   <TrendingUp className="w-7 h-7" />
                 </div>
                 <h3 className="text-xl font-bold text-slate-800 mb-3">Valorisation</h3>
-                <p className="text-slate-600">Zone en plein developpement</p>
-              </CardContent>
-            </Card>
+                <p className="text-slate-600">Zone en plein developpement economique</p>
+              </div>
+            </ScrollReveal>
 
-            <Card className="border-slate-200 hover:shadow-xl transition-all hover:-translate-y-1" style={{ background: `linear-gradient(135deg, ${colors.primary}05, ${colors.secondary}08)` }}>
-              <CardContent className="p-8">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-white" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}>
-                  <Scale className="w-7 h-7" />
+            <ScrollReveal className="sm:col-span-2 lg:col-span-2" delay={300}>
+              <div
+                className="relative overflow-hidden rounded-3xl p-8 h-full border border-white/20 hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 cursor-default"
+                style={{
+                  background: `linear-gradient(135deg, ${colors.secondary}08, ${colors.primary}05)`,
+                  backdropFilter: 'blur(12px)',
+                }}
+              >
+                <div className="flex items-start gap-6">
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0"
+                    style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+                  >
+                    <Scale className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-800 mb-3">Accompagnement de A a Z</h3>
+                    <p className="text-slate-600">Procedure d'acquisition securisee, de la reservation jusqu'a l'obtention de votre titre foncier. Aucune commission cachee.</p>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-3">Accompagnement</h3>
-                <p className="text-slate-600">Procedure d'acquisition securisee</p>
-              </CardContent>
-            </Card>
+              </div>
+            </ScrollReveal>
+
+            <ScrollReveal className="sm:col-span-2 lg:col-span-2" delay={400}>
+              <div
+                className="relative overflow-hidden rounded-3xl p-8 h-full border border-white/20 hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 cursor-default"
+                style={{
+                  background: `linear-gradient(135deg, ${colors.primary}06, ${colors.secondary}10)`,
+                  backdropFilter: 'blur(12px)',
+                }}
+              >
+                <div className="flex items-start gap-6">
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0"
+                    style={{ background: `linear-gradient(135deg, ${colors.secondary}, ${colors.primary})` }}
+                  >
+                    <Star className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-800 mb-3">Investissement de Confiance</h3>
+                    <p className="text-slate-600">Un projet porte par une etude notariale reconnue, avec une transparence totale sur les couts et les demarches.</p>
+                  </div>
+                </div>
+              </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
 
-      {/* ========== SECTION PARCELLES / PRODUITS ========== */}
+      {/* ========== SECTION PARCELLES / PRODUITS - Premium ========== */}
       {hasProduits && (
-        <section id="parcelles" className="py-24" style={{ background: `linear-gradient(135deg, ${colors.primary}05, ${colors.secondary}08)` }}>
+        <section id="parcelles" className="py-24 bg-slate-50">
           <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-6">Nos offres</h2>
-              <p className="text-xl text-slate-600 max-w-3xl mx-auto">Choisissez la parcelle qui correspond a vos besoins.</p>
-            </div>
+            <ScrollReveal>
+              <div className="text-center mb-16">
+                <p className="text-sm font-semibold uppercase tracking-wider mb-3" style={{ color: colors.primary }}>Offres</p>
+                <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-6">Nos offres</h2>
+                <p className="text-xl text-slate-500 max-w-3xl mx-auto">Choisissez la parcelle qui correspond a vos besoins.</p>
+              </div>
+            </ScrollReveal>
 
             <div className={`grid gap-8 ${produits.length === 1 ? 'max-w-lg mx-auto' : produits.length === 2 ? 'md:grid-cols-2 max-w-4xl mx-auto' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
-              {produits.map((produit) => (
-                <Card key={produit.id} className="overflow-hidden border-slate-200 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1">
-                  {produit.image ? (
-                    <div className="relative h-52">
-                      <img src={produit.image} alt={produit.nom} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                      <div className="absolute bottom-4 left-4">
-                        <Badge className="text-white text-sm px-3 py-1" style={{ backgroundColor: colors.primary }}>
-                          {produit.surface} m2
-                        </Badge>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="h-52 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}>
-                      <div className="text-center text-white">
-                        <Maximize className="w-10 h-10 mx-auto mb-2 opacity-80" />
-                        <span className="text-2xl font-bold">{produit.surface} m2</span>
-                      </div>
-                    </div>
-                  )}
-                  <CardContent className="p-6">
-                    <h3 className="text-2xl font-bold text-slate-800 mb-2">{produit.nom}</h3>
-                    {produit.description && (
-                      <p className="text-slate-500 text-sm mb-4">{produit.description}</p>
-                    )}
-                    <div className="flex items-baseline gap-2 mb-6">
-                      <span className="text-3xl font-bold" style={{ color: colors.primary }}>{formatFCFA(produit.prix)}</span>
-                    </div>
-                    <div className="space-y-2 mb-6 text-sm">
-                      <div className="flex items-center gap-2 text-slate-600">
-                        <CheckCircle className="w-4 h-4" style={{ color: colors.primary }} />
-                        <span>Surface : {produit.surface} m2</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-slate-600">
-                        <CheckCircle className="w-4 h-4" style={{ color: colors.primary }} />
-                        <span>Titre foncier securise</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-slate-600">
-                        <CheckCircle className="w-4 h-4" style={{ color: colors.primary }} />
-                        <span>Accompagnement notarial</span>
-                      </div>
-                    </div>
-                    <Button
-                      onClick={() => {
-                        setSelectedProduit(produit.id);
-                        setFormOpen(true);
+              {produits.map((produit, idx) => {
+                const isPopulaire = produits.length >= 3 && idx === 1;
+                return (
+                  <ScrollReveal key={produit.id} delay={idx * 120}>
+                    <div
+                      className={`relative overflow-hidden rounded-3xl bg-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-t-4 group ${isPopulaire ? 'ring-2' : ''}`}
+                      style={{
+                        borderTopColor: colors.primary,
+                        ...(isPopulaire ? { ringColor: colors.primary } : {}),
                       }}
-                      className="w-full text-white"
-                      style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
                     >
-                      Choisir cette offre
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                      {/* Populaire badge */}
+                      {isPopulaire && (
+                        <div
+                          className="absolute top-4 right-4 z-10 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg"
+                          style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+                        >
+                          Populaire
+                        </div>
+                      )}
+
+                      {produit.image ? (
+                        <div className="relative h-52 overflow-hidden">
+                          <img src={produit.image} alt={produit.nom} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                          <div className="absolute bottom-4 left-4">
+                            <Badge className="text-white text-sm px-3 py-1 backdrop-blur-sm bg-white/20 border border-white/30">
+                              {produit.surface} m&sup2;
+                            </Badge>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="h-52 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}>
+                          <div className="text-center text-white">
+                            <Maximize className="w-10 h-10 mx-auto mb-2 opacity-80" />
+                            <span className="text-2xl font-bold">{produit.surface} m&sup2;</span>
+                          </div>
+                        </div>
+                      )}
+                      <div className="p-6">
+                        <h3 className="text-2xl font-bold text-slate-800 mb-2">{produit.nom}</h3>
+                        {produit.description && (
+                          <p className="text-slate-500 text-sm mb-4">{produit.description}</p>
+                        )}
+                        <div className="flex items-baseline gap-1 mb-6">
+                          <span className="text-3xl font-bold" style={{ color: colors.primary }}>
+                            {formatFCFA(produit.prix).replace(' FCFA', '')}
+                          </span>
+                          <span className="text-sm font-medium text-slate-400">FCFA</span>
+                        </div>
+                        <div className="space-y-2 mb-6 text-sm">
+                          <div className="flex items-center gap-2 text-slate-600">
+                            <CheckCircle className="w-4 h-4" style={{ color: colors.primary }} />
+                            <span>Surface : {produit.surface} m&sup2;</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-slate-600">
+                            <CheckCircle className="w-4 h-4" style={{ color: colors.primary }} />
+                            <span>Titre foncier securise</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-slate-600">
+                            <CheckCircle className="w-4 h-4" style={{ color: colors.primary }} />
+                            <span>Accompagnement notarial</span>
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => {
+                            setSelectedProduit(produit.id);
+                            setFormOpen(true);
+                          }}
+                          className="w-full text-white"
+                          style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+                        >
+                          Choisir cette offre
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      </div>
+                    </div>
+                  </ScrollReveal>
+                );
+              })}
             </div>
           </div>
         </section>
       )}
 
-      {/* ========== DETAILS DU BIEN ========== */}
-      <section id="details" className="py-24" style={hasProduits ? undefined : { background: `linear-gradient(135deg, ${colors.primary}05, ${colors.secondary}08)` }}>
+      {/* ========== DETAILS DU BIEN - Tabbed approach ========== */}
+      <section id="details" className="py-24 bg-white">
         <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-6">Details du bien</h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">Toutes les informations sur ce programme immobilier.</p>
-          </div>
-
-          {/* Description du projet - deplacee ici */}
-          {projet.description && (
-            <div className="mb-12 border rounded-2xl p-6 max-w-4xl mx-auto" style={{ background: `linear-gradient(135deg, ${colors.primary}05, ${colors.secondary}08)`, borderColor: `${colors.primary}20` }}>
-              <div className="flex items-start gap-4">
-                <div className="w-1 rounded-full shrink-0 self-stretch min-h-[60px]" style={{ backgroundColor: colors.primary }} />
-                <p className="text-slate-700 text-lg leading-relaxed">
-                  {projet.description}
-                </p>
-              </div>
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <p className="text-sm font-semibold uppercase tracking-wider mb-3" style={{ color: colors.primary }}>Informations</p>
+              <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-6">Details du bien</h2>
+              <p className="text-xl text-slate-500 max-w-3xl mx-auto">Toutes les informations sur ce programme immobilier.</p>
             </div>
+          </ScrollReveal>
+
+          {/* Description du projet */}
+          {projet.description && (
+            <ScrollReveal>
+              <div className="mb-12 border rounded-2xl p-6 max-w-4xl mx-auto" style={{ background: `linear-gradient(135deg, ${colors.primary}05, ${colors.secondary}08)`, borderColor: `${colors.primary}20` }}>
+                <div className="flex items-start gap-4">
+                  <div className="w-1 rounded-full shrink-0 self-stretch min-h-[60px]" style={{ backgroundColor: colors.primary }} />
+                  <p className="text-slate-700 text-lg leading-relaxed">
+                    {projet.description}
+                  </p>
+                </div>
+              </div>
+            </ScrollReveal>
           )}
 
-          <div className="grid lg:grid-cols-2 gap-8">
-            <Card className="overflow-hidden border-slate-200 shadow-lg">
-              {projet.banner_image && (
-                <div className="relative h-64">
-                  <img src={projet.banner_image} alt={projet.titre} className="w-full h-full object-cover" />
-                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-4 py-2 rounded-full">
-                    <span className="text-2xl font-bold text-slate-800">{projet.surface} m2</span>
-                  </div>
-                </div>
-              )}
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold text-slate-800 mb-2">{projet.titre}</h3>
-                <p className="text-slate-500 mb-6">{typeBienLabel} — {projet.ville}</p>
-
-                {projet.prix > 0 && (
-                  <div className="mb-6">
-                    <p className="text-sm text-slate-500 mb-1">Prix</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-4xl font-bold" style={{ color: colors.primary }}>{formatFCFA(projet.prix)}</span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-3 mb-8">
-                  <div className="flex justify-between py-3 border-b border-slate-100">
-                    <span className="text-slate-500">Type de bien</span>
-                    <span className="font-semibold text-slate-900">{typeBienLabel}</span>
-                  </div>
-                  <div className="flex justify-between py-3 border-b border-slate-100">
-                    <span className="text-slate-500">Surface</span>
-                    <span className="font-semibold text-slate-900">{projet.surface} m2</span>
-                  </div>
-                  {projet.type_bien !== 'terrain' && (
-                    <>
-                      <div className="flex justify-between py-3 border-b border-slate-100">
-                        <span className="text-slate-500">Pieces</span>
-                        <span className="font-semibold text-slate-900">{projet.nb_pieces}</span>
-                      </div>
-                      <div className="flex justify-between py-3 border-b border-slate-100">
-                        <span className="text-slate-500">Chambres</span>
-                        <span className="font-semibold text-slate-900">{projet.nb_chambres}</span>
-                      </div>
-                    </>
-                  )}
-                  <div className="flex justify-between py-3">
-                    <span className="text-slate-500">Localisation</span>
-                    <span className="font-semibold text-slate-900 text-right">{p.quartier ? `${p.quartier}, ` : ''}{projet.ville}</span>
-                  </div>
-                </div>
-
-                <Button
-                  onClick={() => setFormOpen(true)}
-                  className="w-full text-white"
-                  style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
-                >
-                  S'inscrire
-                </Button>
-              </CardContent>
-            </Card>
-
-            <div className="space-y-8">
-              {conditionsElig.length > 0 && (
-                <div className="rounded-3xl p-8 border" style={{ background: `linear-gradient(135deg, ${colors.primary}08, ${colors.secondary}05)`, borderColor: `${colors.primary}20` }}>
-                  <h3 className="text-2xl font-bold text-slate-800 mb-6">Conditions d'eligibilite</h3>
-                  <div className="space-y-4">
-                    {conditionsElig.map((condition: string, i: number) => (
-                      <div key={i} className="flex items-start gap-4">
-                        <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: `${colors.primary}15` }}>
-                          <CheckCircle className="w-4 h-4" style={{ color: colors.primary }} />
+          <ScrollReveal>
+            <div className="grid lg:grid-cols-5 gap-8">
+              {/* Left - Image + Price card */}
+              <div className="lg:col-span-2">
+                <div className="sticky top-28">
+                  <Card className="overflow-hidden border-slate-200 shadow-lg">
+                    {projet.banner_image && (
+                      <div className="relative h-56">
+                        <img src={projet.banner_image} alt={projet.titre} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                        <div className="absolute bottom-4 left-4 right-4">
+                          <p className="text-white font-bold text-lg">{projet.titre}</p>
+                          <p className="text-white/70 text-sm">{typeBienLabel} -- {projet.ville}</p>
                         </div>
-                        <p className="text-slate-600">{condition}</p>
+                      </div>
+                    )}
+                    <CardContent className="p-6">
+                      {projet.prix > 0 && (
+                        <div className="mb-5">
+                          <p className="text-sm text-slate-500 mb-1">Prix</p>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-3xl font-bold" style={{ color: colors.primary }}>{formatFCFA(projet.prix).replace(' FCFA', '')}</span>
+                            <span className="text-sm text-slate-400 font-medium">FCFA</span>
+                          </div>
+                        </div>
+                      )}
+                      <Button
+                        onClick={() => setFormOpen(true)}
+                        className="w-full text-white"
+                        style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+                      >
+                        S'inscrire
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* Right - Tabbed content */}
+              <div className="lg:col-span-3">
+                {/* Tab buttons */}
+                <div className="flex gap-1 mb-8 bg-slate-100 rounded-2xl p-1.5">
+                  {[
+                    { id: 'caracteristiques' as const, label: 'Caracteristiques' },
+                    { id: 'documents' as const, label: 'Documents' },
+                    ...(conditionsElig.length > 0 ? [{ id: 'conditions' as const, label: 'Conditions' }] : []),
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setDetailsTab(tab.id)}
+                      className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 ${
+                        detailsTab === tab.id
+                          ? 'bg-white text-slate-800 shadow-sm'
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Tab: Caracteristiques */}
+                {detailsTab === 'caracteristiques' && (
+                  <div className="space-y-4">
+                    {[
+                      { icon: Home, label: 'Type de bien', value: typeBienLabel },
+                      { icon: Maximize, label: 'Surface', value: `${projet.surface} m\u00B2` },
+                      ...(projet.type_bien !== 'terrain' ? [
+                        { icon: Home, label: 'Pieces', value: String(projet.nb_pieces || '--') },
+                        { icon: Home, label: 'Chambres', value: String(projet.nb_chambres || '--') },
+                      ] : []),
+                      { icon: MapPin, label: 'Localisation', value: `${p.quartier ? `${p.quartier}, ` : ''}${projet.ville}` },
+                    ].map((row, i) => (
+                      <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 transition-colors">
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                          style={{ backgroundColor: `${colors.primary}10` }}
+                        >
+                          <row.icon className="w-5 h-5" style={{ color: colors.primary }} />
+                        </div>
+                        <span className="text-slate-500 flex-1">{row.label}</span>
+                        <span className="font-semibold text-slate-900">{row.value}</span>
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Documents requis - affichage conditionnel */}
-              <Card className="shadow-lg border-slate-200">
-                <CardContent className="p-8">
-                  <h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3">
-                    <FileText className="w-6 h-6" style={{ color: colors.primary }} />
-                    Pieces a fournir
-                  </h4>
-                  <p className="text-sm text-slate-500 mb-4">Documents requis en format numerique :</p>
-
+                {/* Tab: Documents */}
+                {detailsTab === 'documents' && (
                   <div className="space-y-3">
+                    <p className="text-sm text-slate-500 mb-4">Documents requis en format numerique :</p>
                     {DOCUMENTS_BASE.map((doc, i) => (
                       <div key={doc.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
                         <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${colors.primary}15` }}>
@@ -874,49 +1176,73 @@ REGLES:
                         Conditionnel
                       </Badge>
                     </div>
+                    <Button
+                      onClick={() => setFormOpen(true)}
+                      className="w-full mt-6 text-white"
+                      style={{ backgroundColor: colors.primary }}
+                    >
+                      Commencer mon inscription
+                    </Button>
                   </div>
+                )}
 
-                  <Button
-                    onClick={() => setFormOpen(true)}
-                    className="w-full mt-8 text-white"
-                    style={{ backgroundColor: colors.primary }}
-                  >
-                    Commencer mon inscription
-                  </Button>
-                </CardContent>
-              </Card>
+                {/* Tab: Conditions */}
+                {detailsTab === 'conditions' && conditionsElig.length > 0 && (
+                  <div id="conditions" className="space-y-4">
+                    {conditionsElig.map((condition: string, i: number) => (
+                      <div key={i} className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: `${colors.primary}15` }}>
+                          <CheckCircle className="w-4 h-4" style={{ color: colors.primary }} />
+                        </div>
+                        <p className="text-slate-700 pt-1">{condition}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
-      {/* ========== GALERIE PHOTOS ========== */}
-      {p.images && p.images.length > 0 && (
-        <section id="galerie" className="py-24 bg-white">
+      {/* ========== GALERIE PHOTOS - Masonry-style ========== */}
+      {images.length > 0 && (
+        <section id="galerie" className="py-24 bg-slate-50">
           <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-6">Galerie photos</h2>
-              <p className="text-xl text-slate-600 max-w-3xl mx-auto">Decouvrez le bien en images</p>
-            </div>
+            <ScrollReveal>
+              <div className="text-center mb-16">
+                <p className="text-sm font-semibold uppercase tracking-wider mb-3" style={{ color: colors.primary }}>Photos</p>
+                <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-6">Galerie photos</h2>
+                <p className="text-xl text-slate-500 max-w-3xl mx-auto">Decouvrez le bien en images</p>
+              </div>
+            </ScrollReveal>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {p.images.map((image: string, index: number) => (
-                <div
-                  key={index}
-                  className="relative group cursor-pointer overflow-hidden rounded-2xl aspect-[4/3]"
-                  onClick={() => setLightboxImage(image)}
-                >
-                  <img
-                    src={image}
-                    alt={`Photo ${index + 1}`}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                    <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+            <ScrollReveal>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 auto-rows-[200px]">
+                {images.map((image: string, index: number) => (
+                  <div
+                    key={index}
+                    className={`relative group cursor-pointer overflow-hidden rounded-2xl ${
+                      index === 0 ? 'col-span-2 row-span-2' : ''
+                    }`}
+                    onClick={() => { setLightboxImage(image); setLightboxIndex(index); }}
+                  >
+                    <img
+                      src={image}
+                      alt={`Photo ${index + 1}`}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                      <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    {/* Image counter badge */}
+                    <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                      {index + 1}/{images.length}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </ScrollReveal>
           </div>
         </section>
       )}
@@ -930,6 +1256,10 @@ REGLES:
           <button className="absolute top-4 right-4 text-white hover:text-slate-300 transition-colors">
             <X className="w-8 h-8" />
           </button>
+          {/* Counter */}
+          <div className="absolute top-4 left-4 bg-white/10 backdrop-blur-sm text-white text-sm font-medium px-4 py-2 rounded-full">
+            {lightboxIndex + 1} / {images.length}
+          </div>
           <img
             src={lightboxImage}
             alt="Photo agrandie"
@@ -946,94 +1276,120 @@ REGLES:
         return (
           <section className="py-24 bg-white">
             <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
-              <div className="text-center mb-12">
-                <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-6">Localisation</h2>
-                <p className="text-xl text-slate-600 max-w-3xl mx-auto">{locationFull}</p>
-              </div>
-              <div className="rounded-2xl overflow-hidden shadow-lg border border-slate-200">
-                <iframe
-                  src={embedUrl}
-                  width="100%"
-                  height="450"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="Localisation du bien"
-                />
-              </div>
+              <ScrollReveal>
+                <div className="text-center mb-12">
+                  <p className="text-sm font-semibold uppercase tracking-wider mb-3" style={{ color: colors.primary }}>Carte</p>
+                  <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-6">Localisation</h2>
+                  <p className="text-xl text-slate-500 max-w-3xl mx-auto">{locationFull}</p>
+                </div>
+                <div className="rounded-2xl overflow-hidden shadow-lg border border-slate-200">
+                  <iframe
+                    src={embedUrl}
+                    width="100%"
+                    height="450"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Localisation du bien"
+                  />
+                </div>
+              </ScrollReveal>
             </div>
           </section>
         );
       })()}
 
-      {/* ========== CONTACT ========== */}
-      <section id="contact" className="py-24" style={{ background: `linear-gradient(135deg, ${colors.primary}05, ${colors.secondary}08)` }}>
+      {/* ========== CONTACT - Modern glass cards ========== */}
+      <section id="contact" className="py-24 bg-slate-50">
         <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-6">Contactez-nous</h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">Pour toute question, n'hesitez pas a nous contacter</p>
-          </div>
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <p className="text-sm font-semibold uppercase tracking-wider mb-3" style={{ color: colors.primary }}>Contact</p>
+              <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-6">Contactez-nous</h2>
+              <p className="text-xl text-slate-500 max-w-3xl mx-auto">Pour toute question, n'hesitez pas a nous contacter</p>
+            </div>
+          </ScrollReveal>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {projet.contact_email && (
-              <Card className="text-center hover:shadow-xl transition-all hover:-translate-y-1">
-                <CardContent className="p-6">
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `${colors.primary}15` }}>
-                    <Mail className="w-7 h-7" style={{ color: colors.primary }} />
+          <ScrollReveal>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {projet.contact_email && (
+                <a
+                  href={`mailto:${projet.contact_email}`}
+                  className="group relative overflow-hidden rounded-2xl p-6 text-center bg-white/70 backdrop-blur-xl border border-slate-200/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                >
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `${colors.primary}10` }}>
+                    <Mail className="w-6 h-6" style={{ color: colors.primary }} />
                   </div>
-                  <h4 className="font-bold text-slate-800 mb-2">Email</h4>
-                  <a href={`mailto:${projet.contact_email}`} className="hover:underline text-sm break-all" style={{ color: colors.primary }}>
+                  <h4 className="font-bold text-slate-800 mb-1">Email</h4>
+                  <p className="text-sm break-all" style={{ color: colors.primary }}>
                     {projet.contact_email}
-                  </a>
-                </CardContent>
-              </Card>
-            )}
+                  </p>
+                </a>
+              )}
 
-            {projet.contact_phone && (
-              <Card className="text-center hover:shadow-xl transition-all hover:-translate-y-1">
-                <CardContent className="p-6">
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `${colors.primary}15` }}>
-                    <Phone className="w-7 h-7" style={{ color: colors.primary }} />
+              {projet.contact_phone && (
+                <a
+                  href={`tel:${projet.contact_phone}`}
+                  className="group relative overflow-hidden rounded-2xl p-6 text-center bg-white/70 backdrop-blur-xl border border-slate-200/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                >
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `${colors.primary}10` }}>
+                    <Phone className="w-6 h-6" style={{ color: colors.primary }} />
                   </div>
-                  <h4 className="font-bold text-slate-800 mb-2">Telephone</h4>
-                  <a href={`tel:${projet.contact_phone}`} className="hover:underline" style={{ color: colors.primary }}>
+                  <h4 className="font-bold text-slate-800 mb-1">Telephone</h4>
+                  <p className="text-sm" style={{ color: colors.primary }}>
                     {projet.contact_phone}
-                  </a>
-                </CardContent>
-              </Card>
-            )}
+                  </p>
+                </a>
+              )}
 
-            <Card className="text-center hover:shadow-xl transition-all hover:-translate-y-1">
-              <CardContent className="p-6">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `${colors.primary}15` }}>
-                  <MapPin className="w-7 h-7" style={{ color: colors.primary }} />
+              {/* WhatsApp button */}
+              {projet.contact_phone && (
+                <a
+                  href={`https://wa.me/${projet.contact_phone.replace(/[\s()+\-]/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative overflow-hidden rounded-2xl p-6 text-center bg-white/70 backdrop-blur-xl border border-slate-200/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                >
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-green-50">
+                    <MessageCircle className="w-6 h-6 text-green-600" />
+                  </div>
+                  <h4 className="font-bold text-slate-800 mb-1">WhatsApp</h4>
+                  <p className="text-sm text-green-600">Ecrivez-nous</p>
+                </a>
+              )}
+
+              <div className="relative overflow-hidden rounded-2xl p-6 text-center bg-white/70 backdrop-blur-xl border border-slate-200/50">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `${colors.primary}10` }}>
+                  <MapPin className="w-6 h-6" style={{ color: colors.primary }} />
                 </div>
-                <h4 className="font-bold text-slate-800 mb-2">Adresse</h4>
-                <p className="text-slate-600 text-sm">
+                <h4 className="font-bold text-slate-800 mb-1">Adresse</h4>
+                <p className="text-slate-500 text-sm">
                   {projet.adresse}
                   {p.quartier && <><br />{p.quartier}</>}
                   <br />{projet.ville}
                 </p>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </div>
+          </ScrollReveal>
 
-          <div className="mt-12 text-center">
-            <Button
-              size="lg"
-              onClick={() => setFormOpen(true)}
-              className="text-white text-lg"
-              style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
-            >
-              Demarrer mon inscription
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </div>
+          <ScrollReveal>
+            <div className="mt-12 text-center">
+              <Button
+                size="lg"
+                onClick={() => setFormOpen(true)}
+                className="text-white text-lg px-8 py-6 shadow-xl"
+                style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+              >
+                Demarrer mon inscription
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
-      {/* ========== FOOTER ========== */}
+      {/* ========== FOOTER - Cleaner ========== */}
       <footer className="bg-slate-900 text-white py-12">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
@@ -1051,14 +1407,45 @@ REGLES:
               <ArrowRight className="w-4 h-4" />
             </a>
           </div>
-          <div className="mt-8 pt-8 border-t border-slate-800 text-center text-slate-500 text-sm">
+          {/* Etude Ogoula info line */}
+          <div className="mt-6 pt-6 border-t border-slate-800">
+            <p className="text-slate-500 text-sm text-center">
+              {CABINET_DEFAULT.nom} -- {CABINET_DEFAULT.adresse}, {CABINET_DEFAULT.ville} | Tel: {CABINET_DEFAULT.telephone}
+            </p>
+          </div>
+          <div className="mt-4 text-center text-slate-600 text-xs">
             &copy; {new Date().getFullYear()} {projet.titre}. Tous droits reserves. Propulse par PPEO.
           </div>
         </div>
       </footer>
 
+      {/* ========== MOBILE CTA BAR ========== */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 backdrop-blur-xl border-t border-slate-200 p-3 flex items-center justify-between gap-3"
+        style={{
+          animation: 'slideUp 0.5s ease-out',
+        }}
+      >
+        <div className="min-w-0">
+          {displayPrice && (
+            <p className="text-lg font-bold truncate" style={{ color: colors.primary }}>
+              {displayPrice}
+            </p>
+          )}
+          <p className="text-xs text-slate-400 truncate">{projet.titre}</p>
+        </div>
+        <Button
+          onClick={() => setFormOpen(true)}
+          className="text-white shrink-0 shadow-lg"
+          style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+        >
+          S'inscrire
+          <ArrowRight className="w-4 h-4 ml-1" />
+        </Button>
+      </div>
+
       {/* ========== CHATBOT ========== */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-20 lg:bottom-6 right-6 z-50">
         {!chatOpen ? (
           <button
             onClick={() => setChatOpen(true)}
@@ -1183,7 +1570,7 @@ REGLES:
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <span className="font-semibold" style={{ color: colors.primary }}>Etape {formStep} sur 3</span>
-                  <span className="text-slate-400">—</span>
+                  <span className="text-slate-400">--</span>
                   <span className="text-slate-500">
                     {formStep === 1 && 'Informations personnelles'}
                     {formStep === 2 && 'Situation professionnelle'}
@@ -1225,7 +1612,7 @@ REGLES:
                                 <CheckCircle className="w-5 h-5" style={{ color: colors.primary }} />
                               )}
                             </div>
-                            <p className="text-sm text-slate-500">{produit.surface} m2</p>
+                            <p className="text-sm text-slate-500">{produit.surface} m&sup2;</p>
                             <p className="font-bold mt-1" style={{ color: colors.primary }}>{formatFCFA(produit.prix)}</p>
                           </button>
                         ))}
@@ -1624,6 +2011,22 @@ REGLES:
           )}
         </DialogContent>
       </Dialog>
+
+      {/* ========== CSS Keyframes ========== */}
+      <style>{`
+        @keyframes slideUp {
+          from { transform: translateY(100%); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideInRight {
+          from { transform: translateX(100%); }
+          to { transform: translateX(0); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 0.2; transform: scale(1); }
+          50% { opacity: 0.35; transform: scale(1.1); }
+        }
+      `}</style>
     </div>
   );
 }
