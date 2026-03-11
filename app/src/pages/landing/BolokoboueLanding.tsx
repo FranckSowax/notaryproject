@@ -118,15 +118,14 @@ export function BolokoboueLanding() {
           .upload(path, file);
         
         if (!error && data) {
-          const { data: { publicUrl } } = supabase.storage
-            .from('candidats')
-            .getPublicUrl(data.path);
-          
+          const { data: signedData } = await supabase.storage.from('candidats').createSignedUrl(data.path, 60 * 60 * 24 * 365);
+          const fileUrl = signedData?.signedUrl || supabase.storage.from('candidats').getPublicUrl(data.path).data.publicUrl;
+
           documentsFournis.push({
             id: Date.now().toString(),
             type_document_id: docId,
             nom_fichier: file.name,
-            url_fichier: publicUrl,
+            url_fichier: fileUrl,
             date_upload: new Date().toISOString(),
             statut: 'en_attente',
             commentaire: '',
