@@ -1030,27 +1030,15 @@ REGLES:
                           <span className="text-sm font-medium text-slate-400">FCFA</span>
                         </div>
 
-                        {/* Resume bullet-point de la description */}
-                        <div className="space-y-2 mb-6 text-sm">
-                          <div className="flex items-center gap-2 text-slate-600">
-                            <CheckCircle className="w-4 h-4 shrink-0" style={{ color: colors.primary }} />
-                            <span>Surface : {produit.surface} m&sup2;</span>
-                          </div>
-                          {produit.description && produit.description.split(/[\n.;]+/).filter((s: string) => s.trim().length > 3).map((line: string, i: number) => (
-                            <div key={i} className="flex items-start gap-2 text-slate-600">
-                              <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: colors.primary }} />
-                              <span>{line.trim()}</span>
-                            </div>
-                          ))}
-                          <div className="flex items-center gap-2 text-slate-600">
-                            <CheckCircle className="w-4 h-4 shrink-0" style={{ color: colors.primary }} />
-                            <span>Titre foncier securise</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-slate-600">
-                            <CheckCircle className="w-4 h-4 shrink-0" style={{ color: colors.primary }} />
-                            <span>Accompagnement notarial</span>
-                          </div>
-                        </div>
+                        {/* Resume court */}
+                        {produit.description && (
+                          <ul className="text-sm text-slate-500 mb-4 space-y-1 list-disc list-inside">
+                            {produit.description.split(/[\n.;]+/).filter((s: string) => s.trim().length > 3).slice(0, 3).map((line: string, i: number) => (
+                              <li key={i}>{line.trim()}</li>
+                            ))}
+                          </ul>
+                        )}
+                        <p className="text-xs text-slate-400 mb-6">{produit.surface} m&sup2; &middot; Titre foncier &middot; Accompagnement notarial</p>
                         <Button
                           onClick={() => {
                             setSelectedProduit(produit.id);
