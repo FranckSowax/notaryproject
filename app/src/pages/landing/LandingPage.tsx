@@ -983,10 +983,30 @@ REGLES:
                         </div>
                       )}
 
+                      {/* Image ou carte Google Maps */}
                       {produit.image ? (
                         <div className="relative h-52 overflow-hidden">
                           <img src={produit.image} alt={produit.nom} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                          <div className="absolute bottom-4 left-4">
+                            <Badge className="text-white text-sm px-3 py-1 backdrop-blur-sm bg-white/20 border border-white/30">
+                              {produit.surface} m&sup2;
+                            </Badge>
+                          </div>
+                        </div>
+                      ) : p.lien_localisation && getGoogleMapsEmbedUrl(p.lien_localisation) ? (
+                        <div className="relative h-52 overflow-hidden">
+                          <iframe
+                            src={getGoogleMapsEmbedUrl(p.lien_localisation)!}
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            title={`Localisation ${produit.nom}`}
+                            className="pointer-events-none"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
                           <div className="absolute bottom-4 left-4">
                             <Badge className="text-white text-sm px-3 py-1 backdrop-blur-sm bg-white/20 border border-white/30">
                               {produit.surface} m&sup2;
@@ -1003,26 +1023,31 @@ REGLES:
                       )}
                       <div className="p-6">
                         <h3 className="text-2xl font-bold text-slate-800 mb-2">{produit.nom}</h3>
-                        {produit.description && (
-                          <p className="text-slate-500 text-sm mb-4">{produit.description}</p>
-                        )}
-                        <div className="flex items-baseline gap-1 mb-6">
+                        <div className="flex items-baseline gap-1 mb-4">
                           <span className="text-3xl font-bold" style={{ color: colors.primary }}>
                             {formatFCFA(produit.prix).replace(' FCFA', '')}
                           </span>
                           <span className="text-sm font-medium text-slate-400">FCFA</span>
                         </div>
+
+                        {/* Resume bullet-point de la description */}
                         <div className="space-y-2 mb-6 text-sm">
                           <div className="flex items-center gap-2 text-slate-600">
-                            <CheckCircle className="w-4 h-4" style={{ color: colors.primary }} />
+                            <CheckCircle className="w-4 h-4 shrink-0" style={{ color: colors.primary }} />
                             <span>Surface : {produit.surface} m&sup2;</span>
                           </div>
+                          {produit.description && produit.description.split(/[\n.;]+/).filter((s: string) => s.trim().length > 3).map((line: string, i: number) => (
+                            <div key={i} className="flex items-start gap-2 text-slate-600">
+                              <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: colors.primary }} />
+                              <span>{line.trim()}</span>
+                            </div>
+                          ))}
                           <div className="flex items-center gap-2 text-slate-600">
-                            <CheckCircle className="w-4 h-4" style={{ color: colors.primary }} />
+                            <CheckCircle className="w-4 h-4 shrink-0" style={{ color: colors.primary }} />
                             <span>Titre foncier securise</span>
                           </div>
                           <div className="flex items-center gap-2 text-slate-600">
-                            <CheckCircle className="w-4 h-4" style={{ color: colors.primary }} />
+                            <CheckCircle className="w-4 h-4 shrink-0" style={{ color: colors.primary }} />
                             <span>Accompagnement notarial</span>
                           </div>
                         </div>
@@ -1064,7 +1089,7 @@ REGLES:
               <div className="mb-12 border rounded-2xl p-6 max-w-4xl mx-auto" style={{ background: `linear-gradient(135deg, ${colors.primary}05, ${colors.secondary}08)`, borderColor: `${colors.primary}20` }}>
                 <div className="flex items-start gap-4">
                   <div className="w-1 rounded-full shrink-0 self-stretch min-h-[60px]" style={{ backgroundColor: colors.primary }} />
-                  <p className="text-slate-700 text-lg leading-relaxed">
+                  <p className="text-slate-700 text-lg leading-relaxed whitespace-pre-line">
                     {projet.description}
                   </p>
                 </div>
