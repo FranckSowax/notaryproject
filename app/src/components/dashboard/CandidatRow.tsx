@@ -123,9 +123,16 @@ export function CandidatRow({ candidat, onUpdateStatut, onSendWhatsApp }: Candid
 
       {/* Dialog des détails */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Dossier du candidat</DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle>Dossier du candidat</DialogTitle>
+              {candidat.numero_dossier && (
+                <span className="text-sm font-mono font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">
+                  {candidat.numero_dossier}
+                </span>
+              )}
+            </div>
           </DialogHeader>
 
           <Tabs defaultValue="infos" className="mt-4">
@@ -208,26 +215,44 @@ export function CandidatRow({ candidat, onUpdateStatut, onSendWhatsApp }: Candid
             </TabsContent>
 
             <TabsContent value="documents">
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {candidat.documents && candidat.documents.length > 0 ? (
                   candidat.documents.map((doc, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <FileText className="w-5 h-5 text-slate-400" />
-                        <span className="text-sm">{doc.nom_fichier}</span>
+                    <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 hover:shadow-sm transition-shadow">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                          <FileText className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-slate-800 truncate">{doc.nom_fichier || doc.nom || 'Document'}</p>
+                          <p className="text-xs text-slate-400">{doc.type_document_id?.replace(/_/g, ' ') || 'Piece jointe'}</p>
+                        </div>
                       </div>
-                      <a
-                        href={doc.url_fichier}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:underline"
-                      >
-                        Télécharger
-                      </a>
+                      <div className="flex items-center gap-2 shrink-0 ml-4">
+                        {doc.statut && (
+                          <Badge className={doc.statut === 'valide' ? 'bg-green-100 text-green-700' : doc.statut === 'refuse' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}>
+                            {doc.statut === 'valide' ? 'Valide' : doc.statut === 'refuse' ? 'Refuse' : 'En attente'}
+                          </Badge>
+                        )}
+                        {doc.url_fichier && (
+                          <a
+                            href={doc.url_fichier}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-800 font-medium px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+                          >
+                            Ouvrir
+                          </a>
+                        )}
+                      </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-slate-500 text-center py-8">Aucun document fourni</p>
+                  <div className="text-center py-10">
+                    <FileText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                    <p className="text-slate-500">Aucun document fourni</p>
+                    <p className="text-xs text-slate-400 mt-1">Les documents seront visibles ici apres inscription avec pieces jointes</p>
+                  </div>
                 )}
               </div>
             </TabsContent>
