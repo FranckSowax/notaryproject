@@ -55,7 +55,8 @@ export interface Candidat {
   updated_at: string;
   projet_id: string;
   statut: 'nouveau' | 'en_cours' | 'retenu' | 'refuse' | 'desiste';
-  
+  numero_dossier?: string;
+
   // Informations personnelles
   nom: string;
   prenom: string;

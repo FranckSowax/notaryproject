@@ -223,6 +223,7 @@ export interface Database {
           updated_at: string;
           projet_id: string;
           statut: string;
+          numero_dossier: string | null;
           nom: string;
           prenom: string;
           email: string;
@@ -254,6 +255,7 @@ export interface Database {
           updated_at?: string;
           projet_id: string;
           statut?: string;
+          numero_dossier?: string | null;
           nom: string;
           prenom: string;
           email: string;
@@ -285,6 +287,7 @@ export interface Database {
           updated_at?: string;
           projet_id?: string;
           statut?: string;
+          numero_dossier?: string | null;
           nom?: string;
           prenom?: string;
           email?: string;

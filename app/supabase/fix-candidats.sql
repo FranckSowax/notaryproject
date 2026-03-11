@@ -6,6 +6,7 @@
 -- 1. Ajouter les colonnes manquantes sur la table candidats
 ALTER TABLE candidats ADD COLUMN IF NOT EXISTS documents JSONB DEFAULT '[]'::jsonb;
 ALTER TABLE candidats ADD COLUMN IF NOT EXISTS whatsapp_conversations JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE candidats ADD COLUMN IF NOT EXISTS numero_dossier VARCHAR(20) UNIQUE;
 
 -- 2. Creer le bucket storage "candidats" s'il n'existe pas
 INSERT INTO storage.buckets (id, name, public)

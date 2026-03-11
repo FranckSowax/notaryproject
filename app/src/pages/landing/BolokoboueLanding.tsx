@@ -64,6 +64,7 @@ export function BolokoboueLanding() {
   });
   const [documents, setDocuments] = useState<Record<string, File>>({});
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [numeroDossier, setNumeroDossier] = useState('');
 
   // Initialize chatbot
   useEffect(() => {
@@ -133,9 +134,18 @@ export function BolokoboueLanding() {
         }
       }
 
+      // Generer numero de dossier
+      const now = new Date();
+      const yy = String(now.getFullYear()).slice(2);
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const rand = String(Math.floor(1000 + Math.random() * 9000));
+      const numDossier = `PPEO-${yy}${mm}${dd}-${rand}`;
+
       // Create candidat
       const candidatData = {
         projet_id: 'bolokoboue-projet-id',
+        numero_dossier: numDossier,
         nom: formData.nom,
         prenom: formData.prenom,
         email: formData.email,
@@ -155,8 +165,9 @@ export function BolokoboueLanding() {
         documents: documentsFournis,
         statut: 'nouveau' as const,
       };
-      
+
       await createCandidat(candidatData);
+      setNumeroDossier(numDossier);
       setSubmitSuccess(true);
     } catch (error) {
       console.error('Erreur soumission:', error);
@@ -665,6 +676,13 @@ export function BolokoboueLanding() {
               <h3 className="text-xl font-bold text-stone-800 mb-2">
                 Inscription envoyée avec succès !
               </h3>
+              {numeroDossier && (
+                <div className="my-4 mx-auto max-w-xs p-4 rounded-xl border-2 border-dashed border-green-400 bg-green-50">
+                  <p className="text-xs text-stone-500 uppercase tracking-wider mb-1">Votre numero de dossier</p>
+                  <p className="text-2xl font-bold tracking-widest text-green-700">{numeroDossier}</p>
+                  <p className="text-xs text-stone-400 mt-2">Conservez ce numero pour le suivi de votre dossier.</p>
+                </div>
+              )}
               <p className="text-stone-500">
                 Notre office notarial vous contactera dans les plus brefs délais.
               </p>

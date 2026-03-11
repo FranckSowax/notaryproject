@@ -230,6 +230,7 @@ export function LandingPage() {
   const [documents, setDocuments] = useState<Record<string, File>>({});
   const [isMineur, setIsMineur] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [numeroDossier, setNumeroDossier] = useState('');
 
   // Header scroll state
   const [scrolled, setScrolled] = useState(false);
@@ -489,8 +490,17 @@ REGLES:
         '1500000+': 2000000,
       };
 
+      // Generer numero de dossier unique : PPEO-YYMMDD-XXXX
+      const now = new Date();
+      const yy = String(now.getFullYear()).slice(2);
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const rand = String(Math.floor(1000 + Math.random() * 9000));
+      const numDossier = `PPEO-${yy}${mm}${dd}-${rand}`;
+
       const candidatData = {
         projet_id: projet.id,
+        numero_dossier: numDossier,
         nom: formData.nom,
         prenom: formData.prenom,
         email: formData.email,
@@ -516,6 +526,7 @@ REGLES:
         notes: `${selectedProduit ? 'Produit choisi: ' + (produits.find(pr => pr.id === selectedProduit)?.nom || selectedProduit) + ' | ' : ''}${isMineur ? 'MINEUR (representant legal) | ' : ''}Categorie socio-pro: ${formData.categorie_sociopro} | Tranche revenus: ${formData.tranche_revenus}${formData.whatsapp ? ' | WhatsApp: ' + formData.whatsapp : ''}`,
       };
       await createCandidat(candidatData);
+      setNumeroDossier(numDossier);
       setSubmitSuccess(true);
     } catch (error) {
       console.error('Erreur soumission:', error);
@@ -1604,6 +1615,15 @@ REGLES:
               </div>
               <h3 className="text-2xl font-bold text-slate-800 mb-2">Inscription envoyee avec succes !</h3>
               <p className="text-slate-500 mb-2">Votre dossier a bien ete enregistre.</p>
+
+              {numeroDossier && (
+                <div className="my-5 mx-auto max-w-xs p-4 rounded-2xl border-2 border-dashed" style={{ borderColor: colors.primary, backgroundColor: `${colors.primary}08` }}>
+                  <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Votre numero de dossier</p>
+                  <p className="text-2xl font-bold tracking-widest" style={{ color: colors.primary }}>{numeroDossier}</p>
+                  <p className="text-xs text-slate-400 mt-2">Conservez ce numero, il vous sera demande pour le suivi de votre dossier.</p>
+                </div>
+              )}
+
               <p className="text-slate-400 text-sm">Nous vous contacterons dans les plus brefs delais pour la suite de la procedure.</p>
               <Button className="mt-6 text-white rounded-full px-8" onClick={() => setFormOpen(false)} style={{ backgroundColor: colors.primary }}>
                 Fermer
