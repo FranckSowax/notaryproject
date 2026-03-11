@@ -363,14 +363,13 @@ export function useCreateCandidat() {
   const createCandidat = async (candidat: any) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      // Insert sans .select() car anon n'a pas le droit SELECT sur candidats
+      const { error } = await supabase
         .from('candidats')
-        .insert(candidat)
-        .select()
-        .single();
+        .insert(candidat);
 
       if (error) throw error;
-      return data as Candidat;
+      return candidat as Candidat;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur création candidat');
       return null;
