@@ -26,6 +26,9 @@ import {
   Handshake,
   ChevronRight,
   Star,
+  Baby,
+  ToggleRight,
+  ToggleLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -138,8 +141,8 @@ const DOCUMENTS_BASE = [
   { id: 'piece_identite', nom: "Piece d'identite (CNI ou Passeport)", obligatoire: true },
 ];
 
-// Documents conditionnels selon la situation matrimoniale
-function getDocumentsParSituation(situation: string) {
+// Documents conditionnels selon la situation matrimoniale et statut mineur
+function getDocumentsParSituation(situation: string, isMineur: boolean) {
   const docs = [...DOCUMENTS_BASE];
 
   if (situation === 'marie' || situation === 'union_libre') {
@@ -154,6 +157,13 @@ function getDocumentsParSituation(situation: string) {
   if (situation === 'veuf') {
     docs.push({ id: 'acte_deces', nom: 'Acte de deces du conjoint', obligatoire: true });
     docs.push({ id: 'livret_famille', nom: 'Livret de famille', obligatoire: false });
+  }
+
+  if (isMineur) {
+    docs.push({ id: 'acte_naissance_representant', nom: 'Copie legalisee de l\'acte de naissance du representant legal', obligatoire: true });
+    docs.push({ id: 'piece_identite_representant', nom: 'Copie de la piece d\'identite du representant legal', obligatoire: true });
+    docs.push({ id: 'piece_identite_mineur', nom: 'Copie de la piece d\'identite du mineur', obligatoire: true });
+    docs.push({ id: 'acte_naissance_mineur', nom: 'Copie legalisee de l\'acte de naissance du mineur', obligatoire: true });
   }
 
   return docs;
@@ -218,6 +228,7 @@ export function LandingPage() {
     banque_actuelle: '',
   });
   const [documents, setDocuments] = useState<Record<string, File>>({});
+  const [isMineur, setIsMineur] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
   // Header scroll state
@@ -500,7 +511,7 @@ REGLES:
         banque_actuelle: formData.banque_actuelle,
         documents: documentsFournis,
         statut: 'nouveau' as const,
-        notes: `${selectedProduit ? 'Produit choisi: ' + (produits.find(pr => pr.id === selectedProduit)?.nom || selectedProduit) + ' | ' : ''}Categorie socio-pro: ${formData.categorie_sociopro} | Tranche revenus: ${formData.tranche_revenus}${formData.whatsapp ? ' | WhatsApp: ' + formData.whatsapp : ''}`,
+        notes: `${selectedProduit ? 'Produit choisi: ' + (produits.find(pr => pr.id === selectedProduit)?.nom || selectedProduit) + ' | ' : ''}${isMineur ? 'MINEUR (representant legal) | ' : ''}Categorie socio-pro: ${formData.categorie_sociopro} | Tranche revenus: ${formData.tranche_revenus}${formData.whatsapp ? ' | WhatsApp: ' + formData.whatsapp : ''}`,
       };
       await createCandidat(candidatData);
       setSubmitSuccess(true);
@@ -546,7 +557,7 @@ REGLES:
   const conditionsElig: string[] = p.conditions_eligibilite || [];
 
   // Documents conditionnels pour l'etape 3 du formulaire
-  const documentsFormulaire = getDocumentsParSituation(formData.situation_familiale);
+  const documentsFormulaire = getDocumentsParSituation(formData.situation_familiale, isMineur);
 
   // Composant champ avec erreur
   const FieldError = ({ field }: { field: string }) =>
@@ -1517,81 +1528,84 @@ REGLES:
         if (!open) {
           setFormStep(1);
           setFormErrors({});
+          setIsMineur(false);
           if (!hasProduits) setSelectedProduit('');
         }
       }}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-slate-800">
-              Formulaire d'Acquisition
-            </DialogTitle>
-            <p className="text-slate-500 text-sm mt-1">{projet.titre}</p>
-          </DialogHeader>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0">
+          {/* Header gradient */}
+          <div className="px-6 pt-6 pb-4 rounded-t-lg" style={{ background: `linear-gradient(135deg, ${colors.primary}08, ${colors.secondary}08)` }}>
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-slate-800">
+                Formulaire d'Acquisition
+              </DialogTitle>
+              <p className="text-slate-500 text-sm mt-1">{projet.titre}</p>
+            </DialogHeader>
 
-          {submitSuccess ? (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `${colors.primary}15` }}>
-                <CheckCircle className="w-8 h-8" style={{ color: colors.primary }} />
+            {/* Progress bar moderne */}
+            {!submitSuccess && (
+              <div className="mt-5">
+                <div className="flex items-center justify-between mb-2">
+                  {[
+                    { step: 1, icon: User, label: 'Identite' },
+                    { step: 2, icon: Briefcase, label: 'Profession' },
+                    { step: 3, icon: Upload, label: 'Documents' },
+                  ].map(({ step, icon: Icon, label }) => (
+                    <div key={step} className="flex flex-col items-center gap-1.5 flex-1">
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                          step < formStep
+                            ? 'text-white shadow-md'
+                            : step === formStep
+                            ? 'text-white shadow-lg scale-110'
+                            : 'bg-slate-100 text-slate-400'
+                        }`}
+                        style={step <= formStep ? { backgroundColor: colors.primary } : undefined}
+                      >
+                        {step < formStep ? <CheckCircle className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
+                      </div>
+                      <span className={`text-xs font-medium ${step <= formStep ? 'text-slate-700' : 'text-slate-400'}`}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-1 mt-1">
+                  {[1, 2, 3].map(step => (
+                    <div
+                      key={step}
+                      className="flex-1 h-1.5 rounded-full transition-all duration-500"
+                      style={{ backgroundColor: step <= formStep ? colors.primary : '#e2e8f0' }}
+                    />
+                  ))}
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-2">Inscription envoyee avec succes !</h3>
+            )}
+          </div>
+
+          <div className="px-6 pb-6">
+          {submitSuccess ? (
+            <div className="text-center py-10">
+              <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 animate-bounce" style={{ backgroundColor: `${colors.primary}12` }}>
+                <CheckCircle className="w-10 h-10" style={{ color: colors.primary }} />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 mb-2">Inscription envoyee avec succes !</h3>
               <p className="text-slate-500 mb-2">Votre dossier a bien ete enregistre.</p>
               <p className="text-slate-400 text-sm">Nous vous contacterons dans les plus brefs delais pour la suite de la procedure.</p>
-              <Button className="mt-6 text-white" onClick={() => setFormOpen(false)} style={{ backgroundColor: colors.primary }}>
+              <Button className="mt-6 text-white rounded-full px-8" onClick={() => setFormOpen(false)} style={{ backgroundColor: colors.primary }}>
                 Fermer
               </Button>
             </div>
           ) : (
-            <div className="space-y-6">
-              {/* Indicateur de progression */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  {[1, 2, 3].map(step => (
-                    <div key={step} className="flex-1 flex items-center gap-2">
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-colors ${
-                          step < formStep
-                            ? 'text-white'
-                            : step === formStep
-                            ? 'text-white'
-                            : 'bg-slate-200 text-slate-500'
-                        }`}
-                        style={step <= formStep ? { backgroundColor: colors.primary } : undefined}
-                      >
-                        {step < formStep ? <CheckCircle className="w-4 h-4" /> : step}
-                      </div>
-                      {step < 3 && (
-                        <div
-                          className="flex-1 h-1 rounded-full transition-colors"
-                          style={{ backgroundColor: step < formStep ? colors.primary : '#e2e8f0' }}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="font-semibold" style={{ color: colors.primary }}>Etape {formStep} sur 3</span>
-                  <span className="text-slate-400">--</span>
-                  <span className="text-slate-500">
-                    {formStep === 1 && 'Informations personnelles'}
-                    {formStep === 2 && 'Situation professionnelle'}
-                    {formStep === 3 && 'Pieces justificatives'}
-                  </span>
-                </div>
-              </div>
-
-              <p className="text-sm text-slate-400">
-                Veuillez remplir le formulaire ci-dessous pour initier votre demande d'acquisition. Preparez vos pieces justificatives numeriques avant de commencer.
-              </p>
+            <div className="space-y-5 mt-4">
 
               {/* ===== ETAPE 1 : Informations personnelles ===== */}
               {formStep === 1 && (
                 <div className="space-y-5">
                   {/* Selection du produit si multi-produits */}
                   {hasProduits && (
-                    <div>
-                      <h3 className="font-semibold text-lg flex items-center gap-2 text-slate-800 mb-3">
+                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                      <h3 className="font-semibold text-base flex items-center gap-2 text-slate-800 mb-3">
                         <Maximize className="w-5 h-5" style={{ color: colors.primary }} />
-                        Choix de la parcelle *
+                        Choix de la parcelle <span className="text-red-400">*</span>
                       </h3>
                       <div className={`grid gap-3 ${produits.length <= 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}>
                         {produits.map(produit => (
@@ -1602,7 +1616,7 @@ REGLES:
                             className={`p-4 rounded-xl border-2 text-left transition-all ${
                               selectedProduit === produit.id
                                 ? 'shadow-lg'
-                                : 'border-slate-200 hover:border-slate-300'
+                                : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'
                             }`}
                             style={selectedProduit === produit.id ? { borderColor: colors.primary, backgroundColor: `${colors.primary}08` } : undefined}
                           >
@@ -1618,7 +1632,7 @@ REGLES:
                         ))}
                       </div>
                       {formErrors.selectedProduit && (
-                        <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                        <p className="text-red-500 text-xs mt-2 flex items-center gap-1">
                           <CircleAlert className="w-3 h-3" />
                           {formErrors.selectedProduit}
                         </p>
@@ -1626,141 +1640,190 @@ REGLES:
                     </div>
                   )}
 
-                  <h3 className="font-semibold text-lg flex items-center gap-2 text-slate-800">
-                    <User className="w-5 h-5" style={{ color: colors.primary }} />
-                    Informations personnelles
-                  </h3>
+                  {/* Carte informations personnelles */}
+                  <div className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-4">
+                    <h3 className="font-semibold text-base flex items-center gap-2 text-slate-800">
+                      <User className="w-5 h-5" style={{ color: colors.primary }} />
+                      Informations personnelles
+                    </h3>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-slate-700">Nom *</Label>
-                      <Input
-                        value={formData.nom}
-                        onChange={e => updateField('nom', e.target.value)}
-                        placeholder="Votre nom de famille"
-                        className={formErrors.nom ? 'border-red-400' : ''}
-                      />
-                      <FieldError field="nom" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-slate-600 text-sm">Nom <span className="text-red-400">*</span></Label>
+                        <Input
+                          value={formData.nom}
+                          onChange={e => updateField('nom', e.target.value)}
+                          placeholder="Votre nom de famille"
+                          className={`rounded-lg ${formErrors.nom ? 'border-red-400 bg-red-50/50' : 'border-slate-200 focus:border-blue-300'}`}
+                        />
+                        <FieldError field="nom" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-slate-600 text-sm">Prenom <span className="text-red-400">*</span></Label>
+                        <Input
+                          value={formData.prenom}
+                          onChange={e => updateField('prenom', e.target.value)}
+                          placeholder="Votre prenom"
+                          className={`rounded-lg ${formErrors.prenom ? 'border-red-400 bg-red-50/50' : 'border-slate-200 focus:border-blue-300'}`}
+                        />
+                        <FieldError field="prenom" />
+                      </div>
                     </div>
-                    <div>
-                      <Label className="text-slate-700">Prenom *</Label>
-                      <Input
-                        value={formData.prenom}
-                        onChange={e => updateField('prenom', e.target.value)}
-                        placeholder="Votre prenom"
-                        className={formErrors.prenom ? 'border-red-400' : ''}
-                      />
-                      <FieldError field="prenom" />
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-slate-600 text-sm">Date de naissance <span className="text-red-400">*</span></Label>
+                        <Input
+                          type="date"
+                          value={formData.date_naissance}
+                          onChange={e => updateField('date_naissance', e.target.value)}
+                          className={`rounded-lg ${formErrors.date_naissance ? 'border-red-400 bg-red-50/50' : 'border-slate-200'}`}
+                        />
+                        <FieldError field="date_naissance" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-slate-600 text-sm">Lieu de naissance <span className="text-red-400">*</span></Label>
+                        <Input
+                          value={formData.lieu_naissance}
+                          onChange={e => updateField('lieu_naissance', e.target.value)}
+                          placeholder="Ex: Libreville"
+                          className={`rounded-lg ${formErrors.lieu_naissance ? 'border-red-400 bg-red-50/50' : 'border-slate-200'}`}
+                        />
+                        <FieldError field="lieu_naissance" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-slate-600 text-sm">Situation matrimoniale <span className="text-red-400">*</span></Label>
+                      <select
+                        value={formData.situation_familiale}
+                        onChange={e => updateField('situation_familiale', e.target.value)}
+                        className={`w-full h-10 px-3 rounded-lg border bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                          formErrors.situation_familiale ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-blue-300'
+                        }`}
+                      >
+                        <option value="">Selectionnez votre situation</option>
+                        {SITUATIONS_MATRIMONIALES.map(s => (
+                          <option key={s.value} value={s.value}>{s.label}</option>
+                        ))}
+                      </select>
+                      <FieldError field="situation_familiale" />
+                      {formData.situation_familiale && (
+                        <p className="text-xs mt-1.5 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 flex items-start gap-2">
+                          <CircleAlert className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                          <span>
+                            {formData.situation_familiale === 'celibataire' && "Aucun document supplementaire requis pour votre situation."}
+                            {formData.situation_familiale === 'marie' && "Vous devrez fournir votre acte de mariage et livret de famille a l'etape 3."}
+                            {formData.situation_familiale === 'union_libre' && "Vous devrez fournir votre acte de mariage et livret de famille a l'etape 3."}
+                            {formData.situation_familiale === 'divorce' && "Vous devrez fournir votre jugement de divorce a l'etape 3."}
+                            {formData.situation_familiale === 'veuf' && "Vous devrez fournir l'acte de deces du conjoint a l'etape 3."}
+                          </span>
+                        </p>
+                      )}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-slate-700">Date de naissance *</Label>
-                      <Input
-                        type="date"
-                        value={formData.date_naissance}
-                        onChange={e => updateField('date_naissance', e.target.value)}
-                        className={formErrors.date_naissance ? 'border-red-400' : ''}
-                      />
-                      <FieldError field="date_naissance" />
+                  {/* Toggle mineur */}
+                  <button
+                    type="button"
+                    onClick={() => setIsMineur(!isMineur)}
+                    className={`w-full p-4 rounded-2xl border-2 transition-all flex items-center gap-4 text-left ${
+                      isMineur
+                        ? 'border-amber-400 bg-amber-50 shadow-sm'
+                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isMineur ? 'bg-amber-100' : 'bg-slate-100'}`}>
+                      <Baby className={`w-5 h-5 ${isMineur ? 'text-amber-600' : 'text-slate-400'}`} />
                     </div>
-                    <div>
-                      <Label className="text-slate-700">Lieu de naissance *</Label>
-                      <Input
-                        value={formData.lieu_naissance}
-                        onChange={e => updateField('lieu_naissance', e.target.value)}
-                        placeholder="Ex: Libreville"
-                        className={formErrors.lieu_naissance ? 'border-red-400' : ''}
-                      />
-                      <FieldError field="lieu_naissance" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-slate-700">Situation matrimoniale *</Label>
-                    <select
-                      value={formData.situation_familiale}
-                      onChange={e => updateField('situation_familiale', e.target.value)}
-                      className={`w-full h-10 px-3 rounded-md border bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
-                        formErrors.situation_familiale ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-slate-400'
-                      }`}
-                    >
-                      <option value="">Selectionnez votre situation</option>
-                      {SITUATIONS_MATRIMONIALES.map(s => (
-                        <option key={s.value} value={s.value}>{s.label}</option>
-                      ))}
-                    </select>
-                    <FieldError field="situation_familiale" />
-                    {formData.situation_familiale && (
-                      <p className="text-xs mt-1.5 px-2 py-1 rounded bg-blue-50 text-blue-600">
-                        {formData.situation_familiale === 'celibataire' && "Aucun document supplementaire requis pour votre situation."}
-                        {formData.situation_familiale === 'marie' && "Vous devrez fournir votre acte de mariage et livret de famille a l'etape 3."}
-                        {formData.situation_familiale === 'union_libre' && "Vous devrez fournir votre acte de mariage et livret de famille a l'etape 3."}
-                        {formData.situation_familiale === 'divorce' && "Vous devrez fournir votre jugement de divorce a l'etape 3."}
-                        {formData.situation_familiale === 'veuf' && "Vous devrez fournir l'acte de deces du conjoint a l'etape 3."}
+                    <div className="flex-1">
+                      <p className={`font-semibold text-sm ${isMineur ? 'text-amber-800' : 'text-slate-700'}`}>
+                        L'acquereur est mineur
                       </p>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        {isMineur
+                          ? '4 documents supplementaires requis (representant legal + mineur)'
+                          : 'Cochez si le candidat / acquereur est une personne mineure'
+                        }
+                      </p>
+                    </div>
+                    {isMineur ? (
+                      <ToggleRight className="w-8 h-8 text-amber-500 shrink-0" />
+                    ) : (
+                      <ToggleLeft className="w-8 h-8 text-slate-300 shrink-0" />
                     )}
-                  </div>
+                  </button>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-slate-700">Email *</Label>
-                      <Input
-                        type="email"
-                        value={formData.email}
-                        onChange={e => updateField('email', e.target.value)}
-                        placeholder="votre@email.com"
-                        className={formErrors.email ? 'border-red-400' : ''}
-                      />
-                      <FieldError field="email" />
+                  {/* Carte coordonnees */}
+                  <div className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-4">
+                    <h3 className="font-semibold text-base flex items-center gap-2 text-slate-800">
+                      <Phone className="w-5 h-5" style={{ color: colors.primary }} />
+                      Coordonnees
+                    </h3>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-slate-600 text-sm">Email <span className="text-red-400">*</span></Label>
+                        <Input
+                          type="email"
+                          value={formData.email}
+                          onChange={e => updateField('email', e.target.value)}
+                          placeholder="votre@email.com"
+                          className={`rounded-lg ${formErrors.email ? 'border-red-400 bg-red-50/50' : 'border-slate-200'}`}
+                        />
+                        <FieldError field="email" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-slate-600 text-sm">Telephone <span className="text-red-400">*</span></Label>
+                        <Input
+                          value={formData.telephone}
+                          onChange={e => updateField('telephone', e.target.value)}
+                          placeholder="+241 XX XX XX XX"
+                          className={`rounded-lg ${formErrors.telephone ? 'border-red-400 bg-red-50/50' : 'border-slate-200'}`}
+                        />
+                        <FieldError field="telephone" />
+                      </div>
                     </div>
-                    <div>
-                      <Label className="text-slate-700">Telephone *</Label>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-slate-600 text-sm">WhatsApp <span className="text-slate-400 font-normal text-xs">(optionnel, si different)</span></Label>
                       <Input
-                        value={formData.telephone}
-                        onChange={e => updateField('telephone', e.target.value)}
+                        value={formData.whatsapp}
+                        onChange={e => updateField('whatsapp', e.target.value)}
                         placeholder="+241 XX XX XX XX"
-                        className={formErrors.telephone ? 'border-red-400' : ''}
-                      />
-                      <FieldError field="telephone" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-slate-700">WhatsApp <span className="text-slate-400 font-normal">(optionnel, si different du telephone)</span></Label>
-                    <Input
-                      value={formData.whatsapp}
-                      onChange={e => updateField('whatsapp', e.target.value)}
-                      placeholder="+241 XX XX XX XX"
-                    />
-                  </div>
-
-                  <div>
-                    <Label className="text-slate-700">Adresse actuelle</Label>
-                    <Input
-                      value={formData.adresse}
-                      onChange={e => updateField('adresse', e.target.value)}
-                      placeholder="Votre adresse de residence"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-slate-700">Ville / Pays</Label>
-                      <Input
-                        value={formData.ville}
-                        onChange={e => updateField('ville', e.target.value)}
-                        placeholder="Ex: Libreville, Gabon"
+                        className="rounded-lg border-slate-200"
                       />
                     </div>
-                    <div>
-                      <Label className="text-slate-700">Nationalite</Label>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-slate-600 text-sm">Adresse actuelle</Label>
                       <Input
-                        value={formData.nationalite}
-                        onChange={e => updateField('nationalite', e.target.value)}
-                        placeholder="Gabonaise"
+                        value={formData.adresse}
+                        onChange={e => updateField('adresse', e.target.value)}
+                        placeholder="Votre adresse de residence"
+                        className="rounded-lg border-slate-200"
                       />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-slate-600 text-sm">Ville / Pays</Label>
+                        <Input
+                          value={formData.ville}
+                          onChange={e => updateField('ville', e.target.value)}
+                          placeholder="Ex: Libreville, Gabon"
+                          className="rounded-lg border-slate-200"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-slate-600 text-sm">Nationalite</Label>
+                        <Input
+                          value={formData.nationalite}
+                          onChange={e => updateField('nationalite', e.target.value)}
+                          placeholder="Gabonaise"
+                          className="rounded-lg border-slate-200"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1768,39 +1831,40 @@ REGLES:
 
               {/* ===== ETAPE 2 : Situation professionnelle ===== */}
               {formStep === 2 && (
-                <div className="space-y-5">
-                  <h3 className="font-semibold text-lg flex items-center gap-2 text-slate-800">
+                <div className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-5">
+                  <h3 className="font-semibold text-base flex items-center gap-2 text-slate-800">
                     <Briefcase className="w-5 h-5" style={{ color: colors.primary }} />
                     Situation professionnelle
                   </h3>
 
-                  <div>
-                    <Label className="text-slate-700">Profession *</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-slate-600 text-sm">Profession <span className="text-red-400">*</span></Label>
                     <Input
                       value={formData.profession}
                       onChange={e => updateField('profession', e.target.value)}
                       placeholder="Ex: Ingenieur, Enseignant, Medecin..."
-                      className={formErrors.profession ? 'border-red-400' : ''}
+                      className={`rounded-lg ${formErrors.profession ? 'border-red-400 bg-red-50/50' : 'border-slate-200'}`}
                     />
                     <FieldError field="profession" />
                   </div>
 
-                  <div>
-                    <Label className="text-slate-700">Entreprise / Employeur</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-slate-600 text-sm">Entreprise / Employeur</Label>
                     <Input
                       value={formData.employeur}
                       onChange={e => updateField('employeur', e.target.value)}
                       placeholder="Nom de votre employeur ou entreprise"
+                      className="rounded-lg border-slate-200"
                     />
                   </div>
 
-                  <div>
-                    <Label className="text-slate-700">Categorie socio-professionnelle *</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-slate-600 text-sm">Categorie socio-professionnelle <span className="text-red-400">*</span></Label>
                     <select
                       value={formData.categorie_sociopro}
                       onChange={e => updateField('categorie_sociopro', e.target.value)}
-                      className={`w-full h-10 px-3 rounded-md border bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
-                        formErrors.categorie_sociopro ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-slate-400'
+                      className={`w-full h-10 px-3 rounded-lg border bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                        formErrors.categorie_sociopro ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-blue-300'
                       }`}
                     >
                       <option value="">Selectionnez votre categorie</option>
@@ -1811,13 +1875,13 @@ REGLES:
                     <FieldError field="categorie_sociopro" />
                   </div>
 
-                  <div>
-                    <Label className="text-slate-700">Revenus annuels *</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-slate-600 text-sm">Revenus annuels <span className="text-red-400">*</span></Label>
                     <select
                       value={formData.tranche_revenus}
                       onChange={e => updateField('tranche_revenus', e.target.value)}
-                      className={`w-full h-10 px-3 rounded-md border bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
-                        formErrors.tranche_revenus ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-slate-400'
+                      className={`w-full h-10 px-3 rounded-lg border bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                        formErrors.tranche_revenus ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-blue-300'
                       }`}
                     >
                       <option value="">Selectionnez votre tranche de revenus</option>
@@ -1833,90 +1897,94 @@ REGLES:
               {/* ===== ETAPE 3 : Pieces justificatives ===== */}
               {formStep === 3 && (
                 <div className="space-y-5">
-                  <h3 className="font-semibold text-lg flex items-center gap-2 text-slate-800">
-                    <Upload className="w-5 h-5" style={{ color: colors.primary }} />
-                    Pieces justificatives
-                  </h3>
-                  <p className="text-sm text-slate-500">
-                    Telechargez vos documents en format PDF ou image (JPG, PNG). Taille maximale : 10 Mo par fichier.
-                  </p>
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
+                    <div className="flex items-start gap-3">
+                      <Upload className="w-5 h-5 mt-0.5 text-blue-600 shrink-0" />
+                      <div>
+                        <h3 className="font-semibold text-base text-slate-800">Pieces justificatives</h3>
+                        <p className="text-xs text-slate-500 mt-1">
+                          Format accepte : PDF, JPG, PNG. Taille max : 10 Mo par fichier.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
 
-                  {formData.situation_familiale && (
-                    <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
-                      <p className="text-sm text-blue-700 font-medium">
-                        Documents requis pour votre situation : {SITUATIONS_MATRIMONIALES.find(s => s.value === formData.situation_familiale)?.label}
-                      </p>
+                  {(formData.situation_familiale || isMineur) && (
+                    <div className="flex flex-wrap gap-2">
+                      {formData.situation_familiale && (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                          <User className="w-3 h-3" />
+                          {SITUATIONS_MATRIMONIALES.find(s => s.value === formData.situation_familiale)?.label}
+                        </span>
+                      )}
+                      {isMineur && (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                          <Baby className="w-3 h-3" />
+                          Acquereur mineur
+                        </span>
+                      )}
                     </div>
                   )}
 
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {documentsFormulaire.map((doc) => (
-                      <div key={doc.id} className="p-4 border rounded-xl bg-white hover:shadow-sm transition-shadow">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-start gap-3">
-                            <div
-                              className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
-                              style={{ backgroundColor: documents[doc.id] ? `${colors.primary}15` : '#f1f5f9' }}
-                            >
-                              {documents[doc.id] ? (
-                                <CheckCircle className="w-5 h-5" style={{ color: colors.primary }} />
-                              ) : (
-                                <FileText className="w-5 h-5 text-slate-400" />
-                              )}
-                            </div>
-                            <div>
-                              <p className="font-medium text-slate-800">{doc.nom}</p>
+                      <div key={doc.id} className={`p-4 rounded-xl border transition-all ${
+                        documents[doc.id]
+                          ? 'border-green-200 bg-green-50/50'
+                          : 'border-slate-200 bg-white hover:shadow-sm'
+                      }`}>
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                            style={{ backgroundColor: documents[doc.id] ? `${colors.primary}15` : '#f1f5f9' }}
+                          >
+                            {documents[doc.id] ? (
+                              <CheckCircle className="w-5 h-5" style={{ color: colors.primary }} />
+                            ) : (
+                              <FileText className="w-5 h-5 text-slate-400" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm text-slate-800 truncate">{doc.nom}</p>
+                            <div className="flex items-center gap-2 mt-1">
                               {doc.obligatoire && (
-                                <Badge className="mt-1 text-white text-xs" style={{ backgroundColor: colors.primary }}>
+                                <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: colors.primary }}>
                                   Obligatoire
-                                </Badge>
+                                </span>
+                              )}
+                              {documents[doc.id] && (
+                                <span className="text-xs text-green-600">{(documents[doc.id].size / 1024 / 1024).toFixed(2)} Mo</span>
                               )}
                             </div>
                           </div>
-                        </div>
-
-                        <div className="ml-13">
-                          <label
-                            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed cursor-pointer transition-colors ${
-                              documents[doc.id]
-                                ? 'border-green-300 bg-green-50'
-                                : 'border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100'
-                            }`}
-                          >
-                            <Upload className="w-4 h-4 text-slate-500" />
-                            <span className="text-sm text-slate-600">
-                              {documents[doc.id] ? documents[doc.id].name : 'Choisir un fichier'}
-                            </span>
-                            <input
-                              type="file"
-                              accept=".pdf,.jpg,.jpeg,.png"
-                              className="hidden"
-                              onChange={e => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  setDocuments(prev => ({ ...prev, [doc.id]: file }));
-                                }
-                              }}
-                            />
-                          </label>
-                          {documents[doc.id] && (
-                            <div className="flex items-center justify-between mt-2">
-                              <p className="text-xs text-green-600 flex items-center gap-1">
-                                <CheckCircle className="w-3 h-3" />
-                                Fichier selectionne ({(documents[doc.id].size / 1024 / 1024).toFixed(2)} Mo)
-                              </p>
-                              <button
-                                type="button"
-                                onClick={() => setDocuments(prev => {
-                                  const next = { ...prev };
-                                  delete next[doc.id];
-                                  return next;
-                                })}
-                                className="text-xs text-red-500 hover:text-red-700"
-                              >
-                                Supprimer
-                              </button>
-                            </div>
+                          {documents[doc.id] ? (
+                            <button
+                              type="button"
+                              onClick={() => setDocuments(prev => {
+                                const next = { ...prev };
+                                delete next[doc.id];
+                                return next;
+                              })}
+                              className="text-xs text-red-500 hover:text-red-700 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors shrink-0"
+                            >
+                              Retirer
+                            </button>
+                          ) : (
+                            <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors hover:bg-slate-100 text-slate-600 shrink-0 border border-slate-200">
+                              <Upload className="w-3.5 h-3.5" />
+                              Choisir
+                              <input
+                                type="file"
+                                accept=".pdf,.jpg,.jpeg,.png"
+                                className="hidden"
+                                onChange={e => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    setDocuments(prev => ({ ...prev, [doc.id]: file }));
+                                  }
+                                }}
+                              />
+                            </label>
                           )}
                         </div>
                       </div>
@@ -1926,71 +1994,94 @@ REGLES:
                   {/* Documents supplementaires du projet */}
                   {docsRequis.length > 0 && (
                     <>
-                      <div className="border-t pt-4 mt-4">
-                        <p className="text-sm font-medium text-slate-700 mb-3">Documents supplementaires demandes par le projet :</p>
+                      <div className="border-t pt-4 mt-2">
+                        <p className="text-sm font-medium text-slate-600 mb-3 flex items-center gap-2">
+                          <FileText className="w-4 h-4" style={{ color: colors.primary }} />
+                          Documents supplementaires du projet
+                        </p>
                       </div>
-                      {docsRequis.map((doc: DocumentRequis) => (
-                        <div key={doc.id} className="p-4 border rounded-xl bg-white">
-                          <div className="flex items-start gap-3 mb-3">
-                            <div
-                              className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-                              style={{ backgroundColor: documents[doc.id] ? `${colors.primary}15` : '#f1f5f9' }}
-                            >
+                      <div className="space-y-3">
+                        {docsRequis.map((doc: DocumentRequis) => (
+                          <div key={doc.id} className={`p-4 rounded-xl border transition-all ${
+                            documents[doc.id]
+                              ? 'border-green-200 bg-green-50/50'
+                              : 'border-slate-200 bg-white hover:shadow-sm'
+                          }`}>
+                            <div className="flex items-center gap-3">
+                              <div
+                                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                                style={{ backgroundColor: documents[doc.id] ? `${colors.primary}15` : '#f1f5f9' }}
+                              >
+                                {documents[doc.id] ? (
+                                  <CheckCircle className="w-5 h-5" style={{ color: colors.primary }} />
+                                ) : (
+                                  <FileText className="w-5 h-5 text-slate-400" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm text-slate-800 truncate">{doc.nom}</p>
+                                {doc.description && <p className="text-xs text-slate-400 truncate">{doc.description}</p>}
+                                <div className="flex items-center gap-2 mt-1">
+                                  {doc.obligatoire && (
+                                    <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: colors.primary }}>
+                                      Obligatoire
+                                    </span>
+                                  )}
+                                  {documents[doc.id] && (
+                                    <span className="text-xs text-green-600">{(documents[doc.id].size / 1024 / 1024).toFixed(2)} Mo</span>
+                                  )}
+                                </div>
+                              </div>
                               {documents[doc.id] ? (
-                                <CheckCircle className="w-5 h-5" style={{ color: colors.primary }} />
+                                <button
+                                  type="button"
+                                  onClick={() => setDocuments(prev => {
+                                    const next = { ...prev };
+                                    delete next[doc.id];
+                                    return next;
+                                  })}
+                                  className="text-xs text-red-500 hover:text-red-700 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors shrink-0"
+                                >
+                                  Retirer
+                                </button>
                               ) : (
-                                <FileText className="w-5 h-5 text-slate-400" />
-                              )}
-                            </div>
-                            <div>
-                              <p className="font-medium text-slate-800">{doc.nom}</p>
-                              {doc.description && <p className="text-xs text-slate-400">{doc.description}</p>}
-                              {doc.obligatoire && (
-                                <Badge className="mt-1 text-white text-xs" style={{ backgroundColor: colors.primary }}>
-                                  Obligatoire
-                                </Badge>
+                                <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors hover:bg-slate-100 text-slate-600 shrink-0 border border-slate-200">
+                                  <Upload className="w-3.5 h-3.5" />
+                                  Choisir
+                                  <input
+                                    type="file"
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    className="hidden"
+                                    onChange={e => {
+                                      const file = e.target.files?.[0];
+                                      if (file) setDocuments(prev => ({ ...prev, [doc.id]: file }));
+                                    }}
+                                  />
+                                </label>
                               )}
                             </div>
                           </div>
-                          <label className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed cursor-pointer transition-colors ${
-                            documents[doc.id]
-                              ? 'border-green-300 bg-green-50'
-                              : 'border-slate-300 bg-slate-50 hover:border-slate-400'
-                          }`}>
-                            <Upload className="w-4 h-4 text-slate-500" />
-                            <span className="text-sm text-slate-600">
-                              {documents[doc.id] ? documents[doc.id].name : 'Choisir un fichier'}
-                            </span>
-                            <input
-                              type="file"
-                              accept=".pdf,.jpg,.jpeg,.png"
-                              className="hidden"
-                              onChange={e => {
-                                const file = e.target.files?.[0];
-                                if (file) setDocuments(prev => ({ ...prev, [doc.id]: file }));
-                              }}
-                            />
-                          </label>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </>
                   )}
                 </div>
               )}
 
               {/* Navigation entre etapes */}
-              <div className="flex justify-between pt-4 border-t">
+              <div className="flex justify-between pt-4 border-t border-slate-100">
                 <Button
                   variant="outline"
                   onClick={() => setFormStep(prev => Math.max(1, prev - 1))}
                   disabled={formStep === 1}
+                  className="rounded-full px-6"
                 >
                   Precedent
                 </Button>
                 {formStep < 3 ? (
                   <Button
                     onClick={handleNextStep}
-                    className="text-white"
+                    className="text-white rounded-full px-6"
                     style={{ backgroundColor: colors.primary }}
                   >
                     Suivant
@@ -2000,7 +2091,7 @@ REGLES:
                   <Button
                     onClick={handleFormSubmit}
                     disabled={creatingCandidat}
-                    className="text-white"
+                    className="text-white rounded-full px-6"
                     style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
                   >
                     {creatingCandidat ? 'Envoi en cours...' : "Envoyer mon dossier"}
@@ -2009,6 +2100,7 @@ REGLES:
               </div>
             </div>
           )}
+          </div>
         </DialogContent>
       </Dialog>
 
