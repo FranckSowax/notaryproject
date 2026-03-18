@@ -21,6 +21,7 @@ import { StatistiquesPage } from '@/pages/dashboard/StatistiquesPage';
 import { DocumentsGenerationPage } from '@/pages/dashboard/DocumentsGenerationPage';
 import { LandingPage } from '@/pages/landing/LandingPage';
 import { BolokoboueLanding } from '@/pages/landing/BolokoboueLanding';
+import { YCIHLanding } from '@/pages/landing/YCIHLanding';
 import { BookingPage } from '@/pages/public/BookingPage';
 import { CABINET_DEFAULT } from '@/lib/cabinetDefaults';
 
@@ -56,6 +57,7 @@ function App() {
           {/* Landing pages publiques */}
           <Route path="/p/:slug" element={<LandingPage />} />
           <Route path="/bolokoboue" element={<BolokoboueLanding />} />
+          <Route path="/ycih" element={<YCIHLanding />} />
           <Route path="/rdv/:token" element={<BookingPage />} />
 
           {/* Auth */}

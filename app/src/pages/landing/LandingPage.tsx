@@ -1558,7 +1558,7 @@ REGLES:
           if (!hasProduits) setSelectedProduit('');
         }
       }}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-0">
           {/* Header gradient */}
           <div className="px-6 pt-6 pb-4 rounded-t-lg" style={{ background: `linear-gradient(135deg, ${colors.primary}08, ${colors.secondary}08)` }}>
             <DialogHeader>

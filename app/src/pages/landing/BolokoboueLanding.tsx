@@ -663,7 +663,7 @@ export function BolokoboueLanding() {
 
       {/* Formulaire de candidature */}
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl">Formulaire d'inscription - Bolokoboué</DialogTitle>
           </DialogHeader>
