@@ -224,14 +224,14 @@ export function CandidatRow({ candidat, onUpdateStatut, onSendWhatsApp }: Candid
                           <FileText className="w-5 h-5 text-blue-600" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-slate-800 truncate">{doc.nom_fichier || doc.nom || 'Document'}</p>
+                          <p className="text-sm font-medium text-slate-800 truncate">{doc.nom_fichier || 'Document'}</p>
                           <p className="text-xs text-slate-400">{doc.type_document_id?.replace(/_/g, ' ') || 'Piece jointe'}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0 ml-4">
                         {doc.statut && (
-                          <Badge className={doc.statut === 'valide' ? 'bg-green-100 text-green-700' : doc.statut === 'refuse' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}>
-                            {doc.statut === 'valide' ? 'Valide' : doc.statut === 'refuse' ? 'Refuse' : 'En attente'}
+                          <Badge className={doc.statut === 'valide' ? 'bg-green-100 text-green-700' : doc.statut === 'invalide' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}>
+                            {doc.statut === 'valide' ? 'Valide' : doc.statut === 'invalide' ? 'Invalide' : 'En attente'}
                           </Badge>
                         )}
                         {doc.url_fichier && (
