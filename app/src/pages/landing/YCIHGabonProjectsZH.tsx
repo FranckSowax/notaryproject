@@ -29,6 +29,8 @@ export function YCIHGabonProjectsZH() {
   return (
     <>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
         * {
             margin: 0;
             padding: 0;
@@ -36,7 +38,7 @@ export function YCIHGabonProjectsZH() {
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: #334155;
             line-height: 1.6;
@@ -46,11 +48,15 @@ export function YCIHGabonProjectsZH() {
         .ygp-header {
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             color: white;
-            padding: 2rem;
+            padding: 0 2rem;
+            height: 80px;
+            display: flex;
+            align-items: center;
             position: sticky;
             top: 0;
             z-index: 100;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            backdrop-filter: blur(12px);
         }
 
         .ygp-header-content {
@@ -69,6 +75,7 @@ export function YCIHGabonProjectsZH() {
             background: linear-gradient(90deg, #f59e0b, #ea580c);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            letter-spacing: 0.5px;
         }
 
         .ygp-lang-switcher {
@@ -92,9 +99,20 @@ export function YCIHGabonProjectsZH() {
             font-size: 0.875rem;
         }
 
+        .ygp-lang-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .ygp-lang-btn:focus-visible {
+            outline: 2px solid #f59e0b;
+            outline-offset: 2px;
+        }
+
         .ygp-lang-btn.active {
             background: linear-gradient(135deg, #f59e0b, #ea580c);
             color: white;
+            box-shadow: 0 2px 8px rgba(245,158,11,0.4);
         }
 
         .ygp-lang-btn:hover:not(.active) {
@@ -114,15 +132,26 @@ export function YCIHGabonProjectsZH() {
             to { opacity: 1; transform: translateY(0); }
         }
 
+        @keyframes ygpGradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
         /* Hero */
         .ygp-hero {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+            background-size: 200% 200%;
+            animation: ygpGradientShift 8s ease infinite;
             color: white;
+            min-height: 100vh;
             padding: 4rem 2rem;
             border-radius: 24px;
             margin-bottom: 3rem;
             position: relative;
             overflow: hidden;
+            display: flex;
+            align-items: center;
         }
 
         .ygp-hero::before {
@@ -210,6 +239,12 @@ export function YCIHGabonProjectsZH() {
             overflow: hidden;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
             margin-bottom: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .ygp-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
         }
 
         .ygp-card-header {
@@ -224,7 +259,7 @@ export function YCIHGabonProjectsZH() {
         .ygp-card-header.road { background: linear-gradient(135deg, #14b8a6, #0891b2); }
         .ygp-card-header.rail { background: linear-gradient(135deg, #64748b, #475569); }
         .ygp-card-header.bay { background: linear-gradient(135deg, #06b6d4, #2563eb); }
-        .ygp-card-header.ycih { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .ygp-card-header.ycih { background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-top: 4px solid #3b82f6; }
         .ygp-card-header.context { background: linear-gradient(135deg, #f59e0b, #ea580c); }
 
         .ygp-card-header-content {
@@ -280,10 +315,16 @@ export function YCIHGabonProjectsZH() {
         }
 
         .ygp-info-box {
-            padding: 1.5rem;
+            padding: 1.75rem;
             border-radius: 16px;
             background: #f8fafc;
             border: 1px solid #e2e8f0;
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+
+        .ygp-info-box:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
         }
 
         .ygp-info-box.highlight {
@@ -323,6 +364,12 @@ export function YCIHGabonProjectsZH() {
             border-radius: 20px;
             font-size: 0.875rem;
             font-weight: 500;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .ygp-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         /* Stats */
@@ -339,10 +386,15 @@ export function YCIHGabonProjectsZH() {
             padding: 1.25rem;
             border-radius: 16px;
             text-align: center;
+            transition: transform 0.2s ease;
+        }
+
+        .ygp-stat-item:hover {
+            transform: scale(1.05);
         }
 
         .ygp-stat-value {
-            font-size: 2rem;
+            font-size: 48px;
             font-weight: 800;
             color: #2563eb;
             line-height: 1;
@@ -400,7 +452,12 @@ export function YCIHGabonProjectsZH() {
         }
 
         .ygp-matrix-table tr:hover {
-            background: #fff7ed;
+            background: #FFF7ED;
+        }
+
+        @keyframes ygpStarPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
         }
 
         .ygp-stars {
@@ -412,6 +469,11 @@ export function YCIHGabonProjectsZH() {
         .ygp-star {
             color: #fbbf24;
             font-size: 1.25rem;
+            transition: transform 0.2s ease;
+        }
+
+        .ygp-matrix-table tr:hover .ygp-star:not(.empty) {
+            animation: ygpStarPulse 0.6s ease infinite;
         }
 
         .ygp-star.empty {
@@ -429,9 +491,9 @@ export function YCIHGabonProjectsZH() {
             color: white;
         }
 
-        .ygp-priority-badge.high { background: #f59e0b; }
-        .ygp-priority-badge.medium { background: #3b82f6; }
-        .ygp-priority-badge.low { background: #64748b; }
+        .ygp-priority-badge.high { background: #f59e0b; box-shadow: 0 2px 8px rgba(245,158,11,0.4); }
+        .ygp-priority-badge.medium { background: #3b82f6; box-shadow: 0 2px 8px rgba(59,130,246,0.4); }
+        .ygp-priority-badge.low { background: #64748b; box-shadow: 0 2px 8px rgba(100,116,139,0.4); }
 
         /* Package Section */
         .ygp-package-section {
@@ -470,6 +532,12 @@ export function YCIHGabonProjectsZH() {
             border: 1px solid rgba(255,255,255,0.1);
             padding: 2rem;
             border-radius: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .ygp-package-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
         }
 
         .ygp-package-icon {
@@ -509,6 +577,7 @@ export function YCIHGabonProjectsZH() {
             padding: 2rem;
             text-align: center;
             margin-top: 3rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
 
         .ygp-footer-content {
@@ -599,17 +668,54 @@ export function YCIHGabonProjectsZH() {
         /* Reveal animation */
         .ygp-reveal {
             opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.6s ease, transform 0.6s ease;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
         }
 
-        /* Responsive */
+        .ygp-reveal:nth-child(2) { transition-delay: 0.1s; }
+        .ygp-reveal:nth-child(3) { transition-delay: 0.2s; }
+        .ygp-reveal:nth-child(4) { transition-delay: 0.3s; }
+        .ygp-reveal:nth-child(5) { transition-delay: 0.4s; }
+        .ygp-reveal:nth-child(6) { transition-delay: 0.5s; }
+
+        /* Focus-visible accessibility */
+        .ygp-card:focus-visible,
+        .ygp-package-card:focus-visible,
+        .ygp-tag:focus-visible,
+        .ygp-hero-tag:focus-visible,
+        .ygp-context-card:focus-visible {
+            outline: 2px solid #f59e0b;
+            outline-offset: 2px;
+        }
+
+        /* Responsive - Mobile */
         @media (max-width: 768px) {
             .ygp-hero h1 {
-                font-size: 2rem;
+                font-size: 32px;
+            }
+
+            .ygp-hero {
+                min-height: auto;
+                padding: 16px;
+            }
+
+            .ygp-main-content {
+                padding: 16px;
             }
 
             .ygp-card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .ygp-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .ygp-package-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .ygp-context-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -625,6 +731,17 @@ export function YCIHGabonProjectsZH() {
             .ygp-header-content {
                 flex-direction: column;
                 text-align: center;
+            }
+        }
+
+        /* Responsive - Tablet */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .ygp-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .ygp-package-grid {
+                grid-template-columns: 1fr;
             }
         }
       `}</style>
