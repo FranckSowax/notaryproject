@@ -23,6 +23,8 @@ import { LandingPage } from '@/pages/landing/LandingPage';
 import { BolokoboueLanding } from '@/pages/landing/BolokoboueLanding';
 import { YCIHLanding } from '@/pages/landing/YCIHLanding';
 import { YCIHLandingZH } from '@/pages/landing/YCIHLandingZH';
+import { YCIHGabonProjects } from '@/pages/landing/YCIHGabonProjects';
+import { YCIHGabonProjectsZH } from '@/pages/landing/YCIHGabonProjectsZH';
 import { BookingPage } from '@/pages/public/BookingPage';
 import { CABINET_DEFAULT } from '@/lib/cabinetDefaults';
 
@@ -60,6 +62,8 @@ function App() {
           <Route path="/bolokoboue" element={<BolokoboueLanding />} />
           <Route path="/ycih" element={<YCIHLanding />} />
           <Route path="/ycih/zh" element={<YCIHLandingZH />} />
+          <Route path="/ycih/gabon" element={<YCIHGabonProjects />} />
+          <Route path="/ycih/gabon/zh" element={<YCIHGabonProjectsZH />} />
           <Route path="/rdv/:token" element={<BookingPage />} />
 
           {/* Auth */}
