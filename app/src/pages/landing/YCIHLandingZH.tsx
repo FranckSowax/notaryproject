@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-export function YCIHLanding() {
+export function YCIHLandingZH() {
   const revealRefs = useRef<HTMLDivElement[]>([]);
 
   useEffect(() => {
@@ -112,6 +112,19 @@ export function YCIHLanding() {
           border-radius: 2px;
           opacity: 0.8;
         }
+
+        .ycih-lang-switch {
+          font-size: 0.72rem;
+          letter-spacing: 0.12em;
+          color: var(--ycih-gold);
+          text-decoration: none;
+          border: 1px solid var(--ycih-gold);
+          padding: 4px 12px;
+          border-radius: 2px;
+          transition: background 0.3s, color 0.3s;
+          margin-left: 16px;
+        }
+        .ycih-lang-switch:hover { background: var(--ycih-gold); color: var(--ycih-ink); }
 
         /* HERO */
         .ycih-hero {
@@ -782,16 +795,16 @@ export function YCIHLanding() {
       <div className="ycih-page">
         {/* NAVBAR */}
         <nav className="ycih-nav">
-          <div className="ycih-nav-logo">YCIH <span>— Yunnan Group</span></div>
+          <div className="ycih-nav-logo">YCIH <span>— 云南集团</span></div>
           <ul className="ycih-nav-links">
-            <li><a href="#overview">Presentation</a></li>
-            <li><a href="#sectors">Secteurs</a></li>
-            <li><a href="#projects">Projets</a></li>
-            <li><a href="#international">International</a></li>
+            <li><a href="#overview">简介</a></li>
+            <li><a href="#sectors">业务领域</a></li>
+            <li><a href="#projects">项目</a></li>
+            <li><a href="#international">国际化</a></li>
           </ul>
           <div style={{display:'flex', alignItems:'center', gap:16}}>
-            <div className="ycih-nav-badge">Etat chinois · Kunming</div>
-            <a href="/ycih/zh" style={{fontSize:'0.72rem', letterSpacing:'0.12em', color:'var(--ycih-gold)', textDecoration:'none', border:'1px solid var(--ycih-gold)', padding:'4px 12px', borderRadius:'2px', transition:'background 0.3s, color 0.3s'}}>中文</a>
+            <div className="ycih-nav-badge">中国国企 · 昆明</div>
+            <a href="/ycih" className="ycih-lang-switch">FR</a>
           </div>
         </nav>
 
@@ -811,34 +824,34 @@ export function YCIHLanding() {
             </svg>
           </div>
 
-          <div className="ycih-hero-tag">Groupe Public Chinois — Yunnan Province</div>
+          <div className="ycih-hero-tag">中国国有企业 — 云南省</div>
           <h1 className="ycih-hero-title">
-            YCIH<br/><em>Yunnan Construction</em><br/>Investment Holding Group
+            YCIH<br/><em>云南建设投资</em><br/>控股集团
           </h1>
           <p className="ycih-hero-subtitle">
-            Entreprise publique d'Etat de premier plan, YCIH est la holding provinciale de construction et d'investissement du Yunnan. Active depuis Kunming, elle deploie ses capacites sur toute la chaine BTP, immobilier, hydroelectricite et expansion internationale via la Route de la Soie.
+            YCIH是云南省一流的省级国有企业,是云南省建设投资控股集团有限公司。总部位于昆明,业务涵盖建筑工程、房地产、水电及通过丝绸之路进行国际拓展的全产业链。
           </p>
           <div className="ycih-hero-stats">
             <div>
-              <span className="ycih-stat-num">166<sup style={{fontSize:'1.2rem'}}>e</sup></span>
-              <span className="ycih-stat-label">China Top 500 (2025)</span>
+              <span className="ycih-stat-num">166<sup style={{fontSize:'1.2rem'}}>位</sup></span>
+              <span className="ycih-stat-label">中国500强 (2025)</span>
             </div>
             <div>
-              <span className="ycih-stat-num">160<sup style={{fontSize:'1.2rem'}}>Mrd</sup></span>
-              <span className="ycih-stat-label">CA annuel (¥ yuans)</span>
+              <span className="ycih-stat-num">160<sup style={{fontSize:'1.2rem'}}>亿</sup></span>
+              <span className="ycih-stat-label">年营业收入 (人民币)</span>
             </div>
             <div>
               <span className="ycih-stat-num">754</span>
-              <span className="ycih-stat-label">Brevets deposes</span>
+              <span className="ycih-stat-label">已申请专利</span>
             </div>
             <div>
               <span className="ycih-stat-num">2016</span>
-              <span className="ycih-stat-label">Creation (fusion)</span>
+              <span className="ycih-stat-label">成立 (合并重组)</span>
             </div>
           </div>
           <div className="ycih-hero-scroll">
             <div className="ycih-scroll-line"></div>
-            <span>Scroll</span>
+            <span>向下滚动</span>
           </div>
         </section>
 
@@ -846,62 +859,62 @@ export function YCIHLanding() {
 
         {/* OVERVIEW */}
         <section className="ycih-section ycih-overview" id="overview">
-          <div className="ycih-section-label">Presentation</div>
-          <h2 className="ycih-section-title">Un geant de <em>l'investissement public</em><br/>provincial chinois</h2>
+          <div className="ycih-section-label">集团简介</div>
+          <h2 className="ycih-section-title">中国省级<em>公共投资</em><br/>领军企业</h2>
           <div className="ycih-overview-grid ycih-reveal" ref={addRevealRef}>
             <div className="ycih-overview-text">
               <p>
-                <strong>Yunnan Construction Investment Holding Group Co., Ltd. (YCIH)</strong> est une entreprise publique provinciale pilier, dont les missions d'actionnaire et de gestion du capital d'Etat sont exercees par la Commission de supervision et d'administration des actifs d'Etat de la Province du Yunnan (SASAC).
+                <strong>云南建设投资控股集团有限公司 (YCIH)</strong> 是云南省重要的省属国有企业,由云南省人民政府国有资产监督管理委员会 (SASAC) 履行出资人职责并进行国有资本管理。
               </p>
               <p>
-                Nee le <strong>21 avril 2016</strong> de la fusion de trois entites majeures — le Yunnan Construction Engineering Group, le 14th Metallurgical Construction Group et le Southwest Transportation Construction Group — YCIH consolide des decennies d'expertise dans le BTP et l'ingenierie lourde.
+                集团于<strong>2016年4月21日</strong>由三大集团合并重组而成——云南建工集团、中国第十四冶金建设集团和西南交通建设集团,整合了数十年的建筑工程和重工业领域专业经验。
               </p>
               <p>
-                Son siege se situe au <strong>No. 188 Linxi Road, Zone de Developpement Economique et Technologique de Kunming</strong>, capitale de la Province du Yunnan, region strategique a la frontiere de l'Asie du Sud-Est.
+                总部位于<strong>昆明经济技术开发区临溪路188号</strong>,云南省省会昆明地处东南亚门户的战略位置。
               </p>
               <p>
-                Au classement national <strong>China Top 500</strong>, YCIH occupe la 166e position en 2025, avec un chiffre d'affaires operationnel de plus de <strong>16 000 milliards de yuans</strong>. Elle figure parmi les principaux concurrents de Shanghai Construction Group et China State Construction Engineering Corp.
+                在<strong>中国500强</strong>排名中,YCIH于2025年位列第166位,营业收入超过<strong>16,000亿元人民币</strong>。集团是上海建工集团和中国建筑工程总公司的主要竞争对手之一。
               </p>
             </div>
             <div>
               <div className="ycih-fact-row">
-                <div className="ycih-fact-key">Nom complet</div>
-                <div className="ycih-fact-val">Yunnan Construction Investment Holding Group Co., Ltd.</div>
+                <div className="ycih-fact-key">全称</div>
+                <div className="ycih-fact-val">云南建设投资控股集团有限公司</div>
               </div>
               <div className="ycih-fact-row">
-                <div className="ycih-fact-key">Sigle</div>
+                <div className="ycih-fact-key">简称</div>
                 <div className="ycih-fact-val gold">YCIH — 云南建投集团</div>
               </div>
               <div className="ycih-fact-row">
-                <div className="ycih-fact-key">Siege social</div>
-                <div className="ycih-fact-val">Kunming, Province du Yunnan, Chine</div>
+                <div className="ycih-fact-key">总部</div>
+                <div className="ycih-fact-val">中国云南省昆明市</div>
               </div>
               <div className="ycih-fact-row">
-                <div className="ycih-fact-key">Nature juridique</div>
-                <div className="ycih-fact-val">Entreprise publique d'Etat provincial (SASAC)</div>
+                <div className="ycih-fact-key">企业性质</div>
+                <div className="ycih-fact-val">省属国有企业 (SASAC)</div>
               </div>
               <div className="ycih-fact-row">
-                <div className="ycih-fact-key">Representant legal</div>
-                <div className="ycih-fact-val">Chen Zujun</div>
+                <div className="ycih-fact-key">法定代表人</div>
+                <div className="ycih-fact-val">陈祖军</div>
               </div>
               <div className="ycih-fact-row">
-                <div className="ycih-fact-key">Fondation</div>
-                <div className="ycih-fact-val">19 avril 2016 (fusion de 3 groupes)</div>
+                <div className="ycih-fact-key">成立时间</div>
+                <div className="ycih-fact-val">2016年4月19日 (三大集团合并)</div>
               </div>
               <div className="ycih-fact-row">
-                <div className="ycih-fact-key">CA operationnel</div>
-                <div className="ycih-fact-val gold">16 016 Mrd ¥ (2025)</div>
+                <div className="ycih-fact-key">营业收入</div>
+                <div className="ycih-fact-val gold">16,016亿元 (2025)</div>
               </div>
               <div className="ycih-fact-row">
-                <div className="ycih-fact-key">Brevets</div>
-                <div className="ycih-fact-val">754 brevets deposes</div>
+                <div className="ycih-fact-key">专利</div>
+                <div className="ycih-fact-val">754项已申请专利</div>
               </div>
               <div className="ycih-fact-row">
-                <div className="ycih-fact-key">Classement national</div>
-                <div className="ycih-fact-val">166e China Top 500 (2025)</div>
+                <div className="ycih-fact-key">全国排名</div>
+                <div className="ycih-fact-val">中国500强第166位 (2025)</div>
               </div>
               <div className="ycih-fact-row">
-                <div className="ycih-fact-key">Site officiel</div>
+                <div className="ycih-fact-key">官方网站</div>
                 <div className="ycih-fact-val">ynjstzkg.com</div>
               </div>
             </div>
@@ -912,38 +925,38 @@ export function YCIHLanding() {
 
         {/* SECTORS */}
         <section className="ycih-section ycih-sectors" id="sectors">
-          <div className="ycih-section-label">Domaines d'activite</div>
-          <h2 className="ycih-section-title">Six <em>secteurs strategiques</em><br/>en synergie</h2>
+          <div className="ycih-section-label">业务领域</div>
+          <h2 className="ycih-section-title">六大<em>战略板块</em><br/>协同发展</h2>
           <div className="ycih-sectors-grid ycih-reveal" ref={addRevealRef}>
             <div className="ycih-sector-card">
               <span className="ycih-sector-icon">🏗️</span>
-              <div className="ycih-sector-title">Investissement & Construction d'Infrastructures</div>
-              <p className="ycih-sector-desc">Routes, autoroutes, zones economiques, stades nationaux. YCIH finance et realise des ouvrages d'infrastructure majeurs, tant en Chine qu'a l'international dans le cadre de la Route de la Soie.</p>
+              <div className="ycih-sector-title">基础设施投资与建设</div>
+              <p className="ycih-sector-desc">公路、高速公路、经济区、国家体育场馆。YCIH在国内外丝绸之路框架下,投资建设重大基础设施工程。</p>
             </div>
             <div className="ycih-sector-card">
               <span className="ycih-sector-icon">🏢</span>
-              <div className="ycih-sector-title">Promotion Immobiliere & Investissement</div>
-              <p className="ycih-sector-desc">Developpement de complexes residentiels, commerciaux et administratifs. Gestion de projets mixtes urbains pour le compte de collectivites et d'investisseurs institutionnels en Chine.</p>
+              <div className="ycih-sector-title">房地产开发与投资</div>
+              <p className="ycih-sector-desc">开发住宅、商业和行政综合体。为中国各级政府和机构投资者管理城市综合开发项目。</p>
             </div>
             <div className="ycih-sector-card">
               <span className="ycih-sector-icon">🏭</span>
-              <div className="ycih-sector-title">Construction Industrielle & Civile</div>
-              <p className="ycih-sector-desc">Batiments industriels, usines, infrastructures hospitalieres et educatives. YCIH mobilise une ingenierie lourde multi-corps d'etat avec ses multiples filiales de construction specialisees.</p>
+              <div className="ycih-sector-title">工业与民用建筑</div>
+              <p className="ycih-sector-desc">工业厂房、工厂、医疗和教育基础设施。YCIH通过旗下多家专业建筑子公司,调动多专业重型工程力量。</p>
             </div>
             <div className="ycih-sector-card">
               <span className="ycih-sector-icon">⚡</span>
-              <div className="ycih-sector-title">Hydroelectricite & Electromecanique</div>
-              <p className="ycih-sector-desc">Installation d'equipements hydroelectriques et de systemes mecaniques complexes. Projets de centrales, reseaux de distribution et infrastructures energetiques dans toute la region.</p>
+              <div className="ycih-sector-title">水电与机电工程</div>
+              <p className="ycih-sector-desc">安装水电设备和复杂机械系统。涵盖电站、配电网络和全区域能源基础设施项目。</p>
             </div>
             <div className="ycih-sector-card">
               <span className="ycih-sector-icon">⚙️</span>
-              <div className="ycih-sector-title">Fabrication d'Equipements Metallurgiques</div>
-              <p className="ycih-sector-desc">Conception et production d'equipements de fusion et de transformation chimique industrielle. Capacite de R&D integree avec plus de 754 brevets deposes dans les materiaux et la construction.</p>
+              <div className="ycih-sector-title">冶金设备制造</div>
+              <p className="ycih-sector-desc">设计制造冶炼和工业化学转化设备。拥有集成研发能力,已申请754项以上建筑材料和工程专利。</p>
             </div>
             <div className="ycih-sector-card">
               <span className="ycih-sector-icon">🔬</span>
-              <div className="ycih-sector-title">Recherche Scientifique en Construction</div>
-              <p className="ycih-sector-desc">Bureau de recherche appliquee (Yunnan Provincial Building Research Institute). Innovation en materiaux, structures sismiques, systemes de fixation ferroviaire et technologies durables.</p>
+              <div className="ycih-sector-title">建筑科学研究</div>
+              <p className="ycih-sector-desc">应用研究机构 (云南省建筑科学研究院)。在建筑材料、抗震结构、铁路扣件系统和可持续技术领域创新。</p>
             </div>
           </div>
         </section>
@@ -952,42 +965,42 @@ export function YCIHLanding() {
 
         {/* PROJECTS */}
         <section className="ycih-section ycih-projects" id="projects">
-          <div className="ycih-section-label">Projets phares</div>
-          <h2 className="ycih-section-title">Realisations <em>emblematiques</em><br/>en Chine et a l'international</h2>
+          <div className="ycih-section-label">重点项目</div>
+          <h2 className="ycih-section-title">国内外<em>标志性</em><br/>建设成就</h2>
           <div className="ycih-projects-layout ycih-reveal" ref={addRevealRef}>
 
             {/* FEATURED: Laos SEZ */}
             <div className="ycih-project-card featured">
               <div className="ycih-project-header">
                 <div>
-                  <div className="ycih-project-country">🇱🇦 Laos — Zone Economique Speciale</div>
-                  <div className="ycih-project-name">Zone de Developpement<br/>Saysettha, Vientiane</div>
+                  <div className="ycih-project-country">🇱🇦 老挝 — 经济特区</div>
+                  <div className="ycih-project-name">赛色塔综合开发区<br/>万象</div>
                   <div style={{marginTop:16, fontSize:'0.83rem', color:'var(--ycih-muted)', lineHeight:1.7, maxWidth:340}}>
-                    Projet bilateral signe en presence du President Xi Jinping et de son homologue laotien. YCIH via sa filiale YOIC co-developpe cette zone economique speciale de 11,5 km² au nord-est de Vientiane.
+                    该项目由习近平主席和老挝国家元首共同见证签署。YCIH通过旗下子公司YOIC,在万象东北部联合开发11.5平方公里的经济特区。
                   </div>
                 </div>
-                <div className="ycih-project-status active">En operation</div>
+                <div className="ycih-project-status active">运营中</div>
               </div>
               <div className="ycih-project-body">
                 <p className="ycih-project-desc">
-                  La Zone Saysettha constitue le plus grand investissement direct chinois au Laos. Co-financee par YCIH (via YOIC, 75%) et le gouvernement municipal de Vientiane (25%), la zone accueille des entreprises de biomedecine, communications electroniques, innovation technologique, materiaux de construction et energie propre, en provenance de Chine, Japon, Singapour, Thailande, Autriche, Canada et Hong Kong. Declaree priorite nationale par les deux gouvernements, elle beneficie du soutien de la China Development Bank et du Ministere chinois du Commerce.
+                  赛色塔开发区是中国在老挝最大的直接投资项目。由YCIH (通过YOIC, 75%) 和万象市政府 (25%) 共同出资建设,已入驻生物医药、电子通信、科技创新、建材和清洁能源等领域企业,来自中国、日本、新加坡、泰国、奥地利、加拿大和香港等国家和地区。该项目被两国政府列为国家优先事项,获得国家开发银行和中国商务部的支持。
                 </p>
                 <div className="ycih-project-metrics">
                   <div className="ycih-metric-box">
-                    <span className="ycih-metric-val">128M$</span>
-                    <span className="ycih-metric-lbl">Capital LCJV</span>
+                    <span className="ycih-metric-val">1.28亿$</span>
+                    <span className="ycih-metric-lbl">LCJV注册资本</span>
                   </div>
                   <div className="ycih-metric-box">
-                    <span className="ycih-metric-val">360M$</span>
-                    <span className="ycih-metric-lbl">Investissement total</span>
+                    <span className="ycih-metric-val">3.6亿$</span>
+                    <span className="ycih-metric-lbl">总投资额</span>
                   </div>
                   <div className="ycih-metric-box">
-                    <span className="ycih-metric-val">11,5 km²</span>
-                    <span className="ycih-metric-lbl">Superficie</span>
+                    <span className="ycih-metric-val">11.5 km²</span>
+                    <span className="ycih-metric-lbl">占地面积</span>
                   </div>
                   <div className="ycih-metric-box">
                     <span className="ycih-metric-val">68+</span>
-                    <span className="ycih-metric-lbl">Entreprises accueillies</span>
+                    <span className="ycih-metric-lbl">入驻企业</span>
                   </div>
                 </div>
               </div>
@@ -997,25 +1010,25 @@ export function YCIHLanding() {
             <div className="ycih-project-card">
               <div className="ycih-project-header">
                 <div>
-                  <div className="ycih-project-country">🇨🇳 Chine — Kunming</div>
-                  <div className="ycih-project-name">Yunnan Culture<br/>& Arts Center</div>
+                  <div className="ycih-project-country">🇨🇳 中国 — 昆明</div>
+                  <div className="ycih-project-name">云南文化艺术中心</div>
                 </div>
-                <div className="ycih-project-status active">Livre</div>
+                <div className="ycih-project-status active">已交付</div>
               </div>
               <div className="ycih-project-body">
-                <p className="ycih-project-desc">Construction du Grand Theatre du Yunnan (Yunnan Grand Theatre), vitrine culturelle majeure de la province. Laureat du <strong>Prix Luban 2020–2021</strong>, la plus haute distinction de la construction en Chine.</p>
+                <p className="ycih-project-desc">建设云南大剧院,云南省重要的文化地标。荣获<strong>2020-2021年度鲁班奖</strong>,这是中国建筑工程领域的最高荣誉。</p>
                 <div className="ycih-project-metrics">
                   <div className="ycih-metric-box">
                     <span className="ycih-metric-val">🏆</span>
-                    <span className="ycih-metric-lbl">Luban Prize</span>
+                    <span className="ycih-metric-lbl">鲁班奖</span>
                   </div>
                   <div className="ycih-metric-box">
                     <span className="ycih-metric-val">N°1</span>
-                    <span className="ycih-metric-lbl">Yunnan BTP</span>
+                    <span className="ycih-metric-lbl">云南建筑</span>
                   </div>
                   <div className="ycih-metric-box">
                     <span className="ycih-metric-val">AAA</span>
-                    <span className="ycih-metric-lbl">Credit national</span>
+                    <span className="ycih-metric-lbl">国家信用</span>
                   </div>
                 </div>
               </div>
@@ -1025,25 +1038,25 @@ export function YCIHLanding() {
             <div className="ycih-project-card">
               <div className="ycih-project-header">
                 <div>
-                  <div className="ycih-project-country">🇲🇲 Myanmar — Energie</div>
-                  <div className="ycih-project-name">Myanmar–China<br/>Pipeline & Energie</div>
+                  <div className="ycih-project-country">🇲🇲 缅甸 — 能源</div>
+                  <div className="ycih-project-name">中缅油气管道<br/>与能源合作</div>
                 </div>
-                <div className="ycih-project-status">En developpement</div>
+                <div className="ycih-project-status">开发中</div>
               </div>
               <div className="ycih-project-body">
-                <p className="ycih-project-desc">Discussions strategiques avec le Ministere de l'Energie du Myanmar pour des investissements dans les energies solaires a Yangon et Mandalay, et la valorisation des pipelines petroliers Myanmar–Chine traversant le Yunnan.</p>
+                <p className="ycih-project-desc">与缅甸能源部就仰光和曼德勒太阳能投资以及经过云南的中缅石油管道开发进行战略会谈。</p>
                 <div className="ycih-project-metrics">
                   <div className="ycih-metric-box">
-                    <span className="ycih-metric-val">Solar</span>
-                    <span className="ycih-metric-lbl">Yangon & Mandalay</span>
+                    <span className="ycih-metric-val">太阳能</span>
+                    <span className="ycih-metric-lbl">仰光和曼德勒</span>
                   </div>
                   <div className="ycih-metric-box">
-                    <span className="ycih-metric-val">Gas</span>
-                    <span className="ycih-metric-lbl">Pipeline integre</span>
+                    <span className="ycih-metric-val">天然气</span>
+                    <span className="ycih-metric-lbl">一体化管道</span>
                   </div>
                   <div className="ycih-metric-box">
                     <span className="ycih-metric-val">BRI</span>
-                    <span className="ycih-metric-lbl">Route de la Soie</span>
+                    <span className="ycih-metric-lbl">一带一路</span>
                   </div>
                 </div>
               </div>
@@ -1056,18 +1069,18 @@ export function YCIHLanding() {
 
         {/* SUBSIDIARIES */}
         <section className="ycih-section ycih-subsidiaries" id="subsidiaries">
-          <div className="ycih-section-label">Structure du groupe</div>
-          <h2 className="ycih-section-title"><em>Filiales</em> & entites<br/>du groupe YCIH</h2>
+          <div className="ycih-section-label">集团架构</div>
+          <h2 className="ycih-section-title">YCIH集团<br/><em>子公司</em>与实体</h2>
           <div className="ycih-sub-list ycih-reveal" ref={addRevealRef}>
             {[
-              { num: '01', name: 'Yunnan Provincial Overseas Investment Co., Ltd. (YOIC)', desc: 'Bras arme international du groupe — projets BRI, Zone SEZ de Vientiane (Laos), Myanmar, Asie du Sud-Est', tag: 'Overseas' },
-              { num: '02', name: 'YCIH No. 2 Construction Co., Ltd.', desc: 'Execution de chantiers de construction civile et industrielle — Yunnan et regions voisines', tag: 'Construction' },
-              { num: '03', name: 'Yunnan Engineering Construction General Contracting Co.', desc: 'Contracteur general EPC pour projets d\'infrastructure et de genie civil d\'envergure', tag: 'EPC' },
-              { num: '04', name: 'Yunnan Construction Investment & Installation Co., Ltd.', desc: 'Specialiste de l\'installation electromecanique — fondee en aout 1958, plus de 60 ans d\'expertise', tag: 'Installation' },
-              { num: '05', name: 'Yunnan Third Construction Engineering Co.', desc: 'Construction de batiments civils et industriels, travaux publics regionaux', tag: 'BTP' },
-              { num: '06', name: 'Southwest Communications Construction Group Co., Ltd.', desc: 'Infrastructures de transport — routes, autoroutes, voies ferrees dans le sud-ouest de la Chine', tag: 'Transport' },
-              { num: '07', name: 'Yunnan Provincial Building Research Institute Co., Ltd.', desc: 'Centre de R&D — 754 brevets, materiaux de construction, ingenierie sismique, innovations process', tag: 'R&D' },
-              { num: '08', name: 'YCIH Steel Structure Co., Ltd.', desc: 'Fabrication et assemblage de structures metalliques pour grands ouvrages industriels et commerciaux', tag: 'Acier' },
+              { num: '01', name: '云南省海外投资有限公司 (YOIC)', desc: '集团国际业务核心——一带一路项目、万象经济特区 (老挝)、缅甸、东南亚', tag: '海外' },
+              { num: '02', name: '云南建投第二建设有限公司', desc: '承担民用和工业建筑施工——云南及周边地区', tag: '建筑' },
+              { num: '03', name: '云南工程建设总承包股份有限公司', desc: '大型基础设施和土木工程EPC总承包商', tag: 'EPC' },
+              { num: '04', name: '云南建投安装股份有限公司', desc: '机电安装专业企业——始建于1958年8月,拥有60余年专业经验', tag: '安装' },
+              { num: '05', name: '云南第三建设工程有限公司', desc: '民用和工业建筑施工,区域市政工程', tag: '施工' },
+              { num: '06', name: '西南交通建设集团股份有限公司', desc: '交通基础设施——中国西南地区的公路、高速公路、铁路建设', tag: '交通' },
+              { num: '07', name: '云南省建筑科学研究院有限公司', desc: '研发中心——754项专利,建筑材料、抗震工程、工艺创新', tag: '研发' },
+              { num: '08', name: '云南建投钢结构股份有限公司', desc: '大型工业和商业工程钢结构制造与安装', tag: '钢结构' },
             ].map((sub) => (
               <div key={sub.num} className="ycih-sub-item">
                 <div className="ycih-sub-num">{sub.num}</div>
@@ -1085,28 +1098,28 @@ export function YCIHLanding() {
 
         {/* AWARDS */}
         <section className="ycih-section ycih-awards">
-          <div className="ycih-section-label">Distinctions & certifications</div>
-          <h2 className="ycih-section-title">L'excellence <em>reconnue</em><br/>au plus haut niveau</h2>
+          <div className="ycih-section-label">荣誉与认证</div>
+          <h2 className="ycih-section-title">最高级别<em>认可</em><br/>的卓越成就</h2>
           <div className="ycih-awards-grid ycih-reveal" ref={addRevealRef}>
             <div className="ycih-award-card">
               <div className="ycih-award-icon">🏆</div>
-              <div className="ycih-award-name">Prix Luban</div>
-              <p className="ycih-award-desc">La plus haute distinction de la construction en Chine. YCIH laureat 2020–2021 pour l'Ancient City South Ring Road a Kunming.</p>
+              <div className="ycih-award-name">鲁班奖</div>
+              <p className="ycih-award-desc">中国建筑工程领域最高荣誉。YCIH凭昆明古城南环路项目荣获2020-2021年度鲁班奖。</p>
             </div>
             <div className="ycih-award-card">
               <div className="ycih-award-icon">⭐</div>
-              <div className="ycih-award-name">Entreprise Nationale Excellente</div>
-              <p className="ycih-award-desc">Titre "National Excellent Construction Enterprise" et "National Advanced Construction Enterprise" decernes par l'Etat.</p>
+              <div className="ycih-award-name">全国优秀企业</div>
+              <p className="ycih-award-desc">获国家颁发的"全国优秀施工企业"和"全国先进建筑施工企业"荣誉称号。</p>
             </div>
             <div className="ycih-award-card">
               <div className="ycih-award-icon">💎</div>
-              <div className="ycih-award-name">Credit AAA National</div>
-              <p className="ycih-award-desc">Certification "National AAA Credit Enterprise of Construction Industry" — garant de la solidite financiere et de la fiabilite contractuelle.</p>
+              <div className="ycih-award-name">国家AAA级信用</div>
+              <p className="ycih-award-desc">"全国建筑业AAA级信用企业"认证——彰显财务实力和履约可靠性。</p>
             </div>
             <div className="ycih-award-card">
               <div className="ycih-award-icon">🔬</div>
-              <div className="ycih-award-name">Innovation Technologique</div>
-              <p className="ycih-award-desc">Titre "National Advanced Science and Technology Innovation Enterprise" — 754 brevets et un institut de recherche dedie en interne.</p>
+              <div className="ycih-award-name">科技创新先进</div>
+              <p className="ycih-award-desc">"全国科技创新先进企业"荣誉——754项专利及内部专业研究院。</p>
             </div>
           </div>
         </section>
@@ -1115,53 +1128,53 @@ export function YCIHLanding() {
 
         {/* INTERNATIONAL */}
         <section className="ycih-section ycih-international" id="international">
-          <div className="ycih-section-label">Presence internationale</div>
-          <h2 className="ycih-section-title">Au coeur de la <em>Route de la Soie</em><br/>Belt & Road Initiative</h2>
+          <div className="ycih-section-label">国际布局</div>
+          <h2 className="ycih-section-title"><em>丝绸之路</em>核心<br/>一带一路倡议</h2>
 
           <div className="ycih-countries-grid ycih-reveal" ref={addRevealRef}>
             <div className="ycih-country-item">
               <div className="ycih-country-flag">🇱🇦</div>
-              <div className="ycih-country-name">Laos</div>
-              <div className="ycih-country-role">Zone SEZ Saysettha · Joint-venture LCJV · Zone industrielle 11,5 km²</div>
+              <div className="ycih-country-name">老挝</div>
+              <div className="ycih-country-role">赛色塔经济特区 · LCJV合资企业 · 11.5平方公里工业区</div>
             </div>
             <div className="ycih-country-item">
               <div className="ycih-country-flag">🇲🇲</div>
-              <div className="ycih-country-name">Myanmar</div>
-              <div className="ycih-country-role">Energie solaire · Pipeline petrolier & gazier · Cooperation gouvernementale</div>
+              <div className="ycih-country-name">缅甸</div>
+              <div className="ycih-country-role">太阳能 · 石油天然气管道 · 政府间合作</div>
             </div>
             <div className="ycih-country-item">
               <div className="ycih-country-flag">🇰🇭</div>
-              <div className="ycih-country-name">Cambodge</div>
-              <div className="ycih-country-role">Projets BTP et infrastructures dans le cadre des corridors economiques BRI</div>
+              <div className="ycih-country-name">柬埔寨</div>
+              <div className="ycih-country-role">一带一路经济走廊框架下的建筑和基础设施项目</div>
             </div>
             <div className="ycih-country-item">
               <div className="ycih-country-flag">🌏</div>
-              <div className="ycih-country-name">Asie du Sud-Est</div>
-              <div className="ycih-country-role">Corridor economique Chine–ASEAN · Pont de l'amitie Yunnan–Mekong</div>
+              <div className="ycih-country-name">东南亚</div>
+              <div className="ycih-country-role">中国-东盟经济走廊 · 云南-湄公河友谊桥</div>
             </div>
             <div className="ycih-country-item">
               <div className="ycih-country-flag">🌍</div>
-              <div className="ycih-country-name">Expansion Globale</div>
-              <div className="ycih-country-role">Via YOIC, YCIH explore de nouveaux marches en Afrique, Moyen-Orient et Asie Centrale</div>
+              <div className="ycih-country-name">全球拓展</div>
+              <div className="ycih-country-role">通过YOIC,YCIH积极开拓非洲、中东和中亚新市场</div>
             </div>
           </div>
 
           <div className="ycih-br-banner ycih-reveal" ref={addRevealRef}>
             <div>
-              <div className="ycih-br-label">Belt & Road Initiative — Yunnan Gateway</div>
-              <div className="ycih-br-title">La province du Yunnan :<br/>porte d'entree de la Chine<br/>vers l'Asie du Sud-Est</div>
+              <div className="ycih-br-label">一带一路倡议 — 云南门户</div>
+              <div className="ycih-br-title">云南省：<br/>中国通往<br/>东南亚的门户</div>
             </div>
             <p className="ycih-br-desc">
-              YCIH tire parti de la position geographique strategique du Yunnan, aux frontieres du Myanmar, du Laos et du Vietnam, pour deployer ses projets d'infrastructure dans le cadre de la Belt & Road Initiative. Le groupe a ete cite comme acteur cle de la strategie nationale d'"aller vers l'exterieur" (走出去) par les instances provinciales.
+              YCIH充分利用云南毗邻缅甸、老挝和越南的战略地理优势,在一带一路倡议框架下部署基础设施项目。集团被省级政府部门认定为国家"走出去"战略的关键参与者。
             </p>
             <div className="ycih-br-nums">
               <div>
                 <span className="ycih-br-num-n">3</span>
-                <span className="ycih-br-num-l">Pays frontaliers</span>
+                <span className="ycih-br-num-l">接壤国家</span>
               </div>
               <div>
                 <span className="ycih-br-num-n">BRI</span>
-                <span className="ycih-br-num-l">Initiative officielle</span>
+                <span className="ycih-br-num-l">国家级倡议</span>
               </div>
             </div>
           </div>
@@ -1173,12 +1186,12 @@ export function YCIHLanding() {
         <footer className="ycih-footer">
           <div>
             <div className="ycih-footer-logo">YCIH</div>
-            <p className="ycih-footer-tagline">Yunnan Construction Investment Holding Group Co., Ltd.<br/>Groupe public provincial — Kunming, Chine</p>
+            <p className="ycih-footer-tagline">云南建设投资控股集团有限公司<br/>省属国有企业 — 中国昆明</p>
           </div>
           <div className="ycih-footer-info">
-            <p><strong>Siege social</strong><br/>No. 188 Linxi Road, Zone ETD<br/>Kunming, Province du Yunnan, Chine</p>
-            <p style={{marginTop:16}}><strong>Site officiel</strong><br/>www.ynjstzkg.com</p>
-            <p style={{marginTop:16, fontSize:'0.7rem', color:'rgba(232,224,208,0.3)'}}>Document de presentation — Futur Sowax / DriveBy Africa</p>
+            <p><strong>总部地址</strong><br/>中国云南省昆明市<br/>经济技术开发区临溪路188号</p>
+            <p style={{marginTop:16}}><strong>官方网站</strong><br/>www.ynjstzkg.com</p>
+            <p style={{marginTop:16, fontSize:'0.7rem', color:'rgba(232,224,208,0.3)'}}>介绍文件 — Futur Sowax / DriveBy Africa</p>
           </div>
         </footer>
       </div>
