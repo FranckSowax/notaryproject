@@ -291,10 +291,6 @@ export function YCIHGabonProjectsZH() {
           pointer-events: none;
         }
 
-        @media (max-width: 768px) {
-          .ygp-card-image { height: 200px; }
-        }
-
         .ygp-card-header-content {
             display: flex;
             align-items: center;
@@ -721,61 +717,85 @@ export function YCIHGabonProjectsZH() {
             outline-offset: 2px;
         }
 
-        /* Responsive - Mobile */
-        @media (max-width: 768px) {
-            .ygp-hero h1 {
-                font-size: 32px;
-            }
+        /* Responsive — Mobile (<768px) */
+        @media (max-width: 767px) {
+          .ygp-header { height: auto; padding: 0.75rem 1rem; }
+          .ygp-header-content { flex-direction: column; text-align: center; gap: 0.5rem; }
+          .ygp-logo { font-size: 1.15rem; }
+          .ygp-lang-switcher { padding: 0.25rem; }
+          .ygp-lang-btn { padding: 0.4rem 1rem; font-size: 0.8rem; }
 
-            .ygp-hero {
-                min-height: auto;
-                padding: 16px;
-            }
+          .ygp-hero { min-height: auto; padding: 2.5rem 1.25rem; border-radius: 0; margin-bottom: 1.5rem; }
+          .ygp-hero h1 { font-size: 1.75rem; }
+          .ygp-hero p { font-size: 1rem; }
+          .ygp-hero-badge { font-size: 0.75rem; padding: 0.35rem 0.75rem; }
+          .ygp-hero-tags { gap: 0.5rem; }
+          .ygp-hero-tags span { font-size: 0.75rem; padding: 0.4rem 0.75rem; }
 
-            .ygp-main-content {
-                padding: 16px;
-            }
+          .ygp-main { padding: 1rem; }
+          .ygp-main-content { padding: 1rem; }
 
-            .ygp-card-grid {
-                grid-template-columns: 1fr;
-            }
+          .ygp-card { border-radius: 16px; margin-bottom: 1.25rem; }
+          .ygp-card-header { padding: 1rem 1.25rem; }
+          .ygp-card-header-content { gap: 0.75rem; }
+          .ygp-card-icon { width: 48px; height: 48px; font-size: 1.5rem; border-radius: 12px; }
+          .ygp-card-title h3 { font-size: 1.15rem; }
+          .ygp-card-title p { font-size: 0.85rem; }
+          .ygp-card-badges { margin-top: 0.5rem; }
+          .ygp-card-badge { font-size: 0.65rem; padding: 0.2rem 0.5rem; }
+          .ygp-card-image { height: 180px; }
+          .ygp-card-body { padding: 1.25rem; }
+          .ygp-card-grid { grid-template-columns: 1fr; gap: 1rem; }
+          .ygp-info-box { padding: 1.25rem; border-radius: 12px; }
+          .ygp-info-box h4 { font-size: 0.9rem; }
+          .ygp-info-box p { font-size: 0.85rem; line-height: 1.6; }
+          .ygp-tags { gap: 0.4rem; margin-top: 1rem; padding-top: 1rem; }
+          .ygp-tag { font-size: 0.75rem; padding: 0.35rem 0.75rem; }
 
-            .ygp-stats-grid {
-                grid-template-columns: 1fr;
-            }
+          .ygp-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+          .ygp-stat-item { padding: 1rem; }
+          .ygp-stat-value { font-size: 32px; }
+          .ygp-stat-label { font-size: 0.75rem; }
 
-            .ygp-package-grid {
-                grid-template-columns: 1fr;
-            }
+          .ygp-context-grid { grid-template-columns: 1fr; gap: 1rem; }
+          .ygp-context-card { padding: 1.25rem; border-radius: 16px; }
 
-            .ygp-context-grid {
-                grid-template-columns: 1fr;
-            }
+          .ygp-matrix-section { padding: 1.5rem 1rem; border-radius: 16px; margin: 2rem 0; }
+          .ygp-matrix-section h2 { font-size: 1.25rem; }
+          .ygp-matrix-table { font-size: 0.75rem; }
+          .ygp-matrix-table th { padding: 0.6rem 0.35rem; font-size: 0.7rem; }
+          .ygp-matrix-table td { padding: 0.6rem 0.35rem; }
+          .ygp-stars { font-size: 0.9rem; gap: 0.1rem; }
+          .ygp-priority-badge { width: 24px; height: 24px; font-size: 0.7rem; }
 
-            .ygp-matrix-table {
-                font-size: 0.875rem;
-            }
+          .ygp-package-section { padding: 2rem 1.25rem; border-radius: 16px; margin: 2rem 0; }
+          .ygp-package-grid { grid-template-columns: 1fr; gap: 1rem; }
+          .ygp-package-card { padding: 1.5rem; border-radius: 16px; }
+          .ygp-package-card h4 { font-size: 1.25rem; }
+          .ygp-package-card h5 { font-size: 1rem; }
+          .ygp-package-card p { font-size: 0.85rem; }
 
-            .ygp-matrix-table th,
-            .ygp-matrix-table td {
-                padding: 0.75rem 0.5rem;
-            }
+          .ygp-section-title h2 { font-size: 1.5rem; }
+          .ygp-section-title p { font-size: 0.875rem; }
 
-            .ygp-header-content {
-                flex-direction: column;
-                text-align: center;
-            }
+          .ygp-footer { padding: 1.5rem 1rem; }
+          .ygp-footer-content { flex-direction: column; text-align: center; font-size: 0.85rem; }
         }
 
-        /* Responsive - Tablet */
+        /* Responsive — Tablet (768px - 1024px) */
         @media (min-width: 768px) and (max-width: 1024px) {
-            .ygp-stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+          .ygp-hero { padding: 3rem 2rem; min-height: auto; }
+          .ygp-hero h1 { font-size: 2.25rem; }
 
-            .ygp-package-grid {
-                grid-template-columns: 1fr;
-            }
+          .ygp-card-grid { grid-template-columns: repeat(2, 1fr); }
+          .ygp-stats-grid { grid-template-columns: repeat(2, 1fr); }
+          .ygp-context-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+          .ygp-package-grid { grid-template-columns: 1fr; }
+
+          .ygp-matrix-table th { padding: 1rem 0.5rem; font-size: 0.85rem; }
+          .ygp-matrix-table td { padding: 0.85rem 0.5rem; }
+
+          .ygp-card-image { height: 240px; }
         }
       `}</style>
 
