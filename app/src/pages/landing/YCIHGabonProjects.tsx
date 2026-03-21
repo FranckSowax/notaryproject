@@ -271,6 +271,39 @@ export function YCIHGabonProjects() {
         .ygp-card-header.bay { background: linear-gradient(135deg, #06b6d4, #2563eb); }
         .ygp-card-header.context { background: linear-gradient(135deg, #f59e0b, #ea580c); }
 
+        .ygp-card-image {
+          position: relative;
+          width: 100%;
+          height: 280px;
+          overflow: hidden;
+        }
+
+        .ygp-card-image img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.6s ease;
+        }
+
+        .ygp-card:hover .ygp-card-image img {
+          transform: scale(1.05);
+        }
+
+        .ygp-card-image::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 80px;
+          background: linear-gradient(to top, rgba(255,255,255,0.9), transparent);
+          pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+          .ygp-card-image { height: 200px; }
+        }
+
         .ygp-card-header-content {
           display: flex;
           align-items: center;
@@ -789,6 +822,9 @@ export function YCIHGabonProjects() {
                 </div>
               </div>
             </div>
+            <div className="ygp-card-image">
+              <img src="/images/projets/projet-1.jpeg" alt="Centrale hydroelectrique et thermique au Gabon" />
+            </div>
             <div className="ygp-card-body">
               <div className="ygp-card-grid">
                 <div className="ygp-info-box highlight"><h4>Signal d'Opportunite</h4><p>Crise energetique severe (delestages chroniques, SEEG en difficulte). Le gouvernement accueillera en avril 2026 la 'Mission 300' de la BAD a Libreville. Le pays possede d'importantes ressources gazieres et un potentiel hydroelectrique sous-exploite.</p></div>
@@ -816,6 +852,9 @@ export function YCIHGabonProjects() {
                   <div className="ygp-card-badges"><span className="ygp-card-badge">Priorite 2</span><span className="ygp-card-badge">Projet 2</span></div>
                 </div>
               </div>
+            </div>
+            <div className="ygp-card-image">
+              <img src="/images/projets/projet-2.jpeg" alt="Zone Economique Speciale de la Nyanga" />
             </div>
             <div className="ygp-card-body">
               <div className="ygp-card-grid">
@@ -845,6 +884,9 @@ export function YCIHGabonProjects() {
                 </div>
               </div>
             </div>
+            <div className="ygp-card-image">
+              <img src="/images/projets/projet-3.jpeg" alt="Programme de logements residentiels au Gabon" />
+            </div>
             <div className="ygp-card-body">
               <div className="ygp-card-grid">
                 <div className="ygp-info-box highlight"><h4>Signal d'Opportunite</h4><p>Deficit structurel de logements massif au Gabon, particulierement a Libreville, Port-Gentil et Franceville. Le gouvernement a fait du logement social une priorite du PNCD 2026-2030. Demande estimee a plusieurs dizaines de milliers d'unites.</p></div>
@@ -872,6 +914,9 @@ export function YCIHGabonProjects() {
                   <div className="ygp-card-badges"><span className="ygp-card-badge">Priorite 4</span><span className="ygp-card-badge">Projet 4</span></div>
                 </div>
               </div>
+            </div>
+            <div className="ygp-card-image">
+              <img src="/images/projets/projet-4.jpeg" alt="Route Transgabonaise a travers la foret equatoriale" />
             </div>
             <div className="ygp-card-body">
               <div className="ygp-card-grid">
@@ -901,6 +946,9 @@ export function YCIHGabonProjects() {
                 </div>
               </div>
             </div>
+            <div className="ygp-card-image">
+              <img src="/images/projets/projet-5.jpeg" alt="Modernisation du reseau ferroviaire Transgabonais" />
+            </div>
             <div className="ygp-card-body">
               <div className="ygp-card-grid">
                 <div className="ygp-info-box highlight"><h4>Signal d'Opportunite</h4><p>Importance strategique du Centre de Gestion des Circulations (CGC) et besoins de modernisation du reseau reliant les zones minieres au port d'Owendo. Exigences accrues de competitivite, securite et regularite.</p></div>
@@ -928,6 +976,9 @@ export function YCIHGabonProjects() {
                   <div className="ygp-card-badges"><span className="ygp-card-badge">Priorite 6</span><span className="ygp-card-badge">Projet 6</span></div>
                 </div>
               </div>
+            </div>
+            <div className="ygp-card-image">
+              <img src="/images/projets/projet-6.jpeg" alt="Amenagement de la Baie des Rois a Libreville" />
             </div>
             <div className="ygp-card-body">
               <div className="ygp-card-grid">

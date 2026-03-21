@@ -262,6 +262,39 @@ export function YCIHGabonProjectsZH() {
         .ygp-card-header.ycih { background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-top: 4px solid #3b82f6; }
         .ygp-card-header.context { background: linear-gradient(135deg, #f59e0b, #ea580c); }
 
+        .ygp-card-image {
+          position: relative;
+          width: 100%;
+          height: 280px;
+          overflow: hidden;
+        }
+
+        .ygp-card-image img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.6s ease;
+        }
+
+        .ygp-card:hover .ygp-card-image img {
+          transform: scale(1.05);
+        }
+
+        .ygp-card-image::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 80px;
+          background: linear-gradient(to top, rgba(255,255,255,0.9), transparent);
+          pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+          .ygp-card-image { height: 200px; }
+        }
+
         .ygp-card-header-content {
             display: flex;
             align-items: center;
@@ -872,6 +905,9 @@ export function YCIHGabonProjectsZH() {
               </div>
             </div>
           </div>
+          <div className="ygp-card-image">
+            <img src="/images/projets/projet-1.jpeg" alt="加蓬水电站和热电站" />
+          </div>
           <div className="ygp-card-body">
             <div className="ygp-card-grid">
               <div className="ygp-info-box highlight">
@@ -914,6 +950,9 @@ export function YCIHGabonProjectsZH() {
                 </div>
               </div>
             </div>
+          </div>
+          <div className="ygp-card-image">
+            <img src="/images/projets/projet-2.jpeg" alt="尼扬加经济特区" />
           </div>
           <div className="ygp-card-body">
             <div className="ygp-card-grid">
@@ -958,6 +997,9 @@ export function YCIHGabonProjectsZH() {
               </div>
             </div>
           </div>
+          <div className="ygp-card-image">
+            <img src="/images/projets/projet-3.jpeg" alt="加蓬住宅开发项目" />
+          </div>
           <div className="ygp-card-body">
             <div className="ygp-card-grid">
               <div className="ygp-info-box highlight">
@@ -1000,6 +1042,9 @@ export function YCIHGabonProjectsZH() {
                 </div>
               </div>
             </div>
+          </div>
+          <div className="ygp-card-image">
+            <img src="/images/projets/projet-4.jpeg" alt="横贯加蓬公路" />
           </div>
           <div className="ygp-card-body">
             <div className="ygp-card-grid">
@@ -1044,6 +1089,9 @@ export function YCIHGabonProjectsZH() {
               </div>
             </div>
           </div>
+          <div className="ygp-card-image">
+            <img src="/images/projets/projet-5.jpeg" alt="横贯加蓬铁路现代化" />
+          </div>
           <div className="ygp-card-body">
             <div className="ygp-card-grid">
               <div className="ygp-info-box highlight">
@@ -1086,6 +1134,9 @@ export function YCIHGabonProjectsZH() {
                 </div>
               </div>
             </div>
+          </div>
+          <div className="ygp-card-image">
+            <img src="/images/projets/projet-6.jpeg" alt="利伯维尔国王湾滨水开发" />
           </div>
           <div className="ygp-card-body">
             <div className="ygp-card-grid">
