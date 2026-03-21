@@ -450,13 +450,20 @@ export function YCIHGabonProjects() {
           margin: 3rem 0;
         }
 
+        .ygp-matrix-scroll {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          border-radius: 16px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
         .ygp-matrix-table {
           width: 100%;
+          min-width: 540px;
           border-collapse: collapse;
           background: white;
           border-radius: 16px;
           overflow: hidden;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
 
         .ygp-matrix-table th {
@@ -498,6 +505,50 @@ export function YCIHGabonProjects() {
         }
 
         .ygp-star-empty { color: #d1d5db; }
+
+        /* Mobile matrix cards — hidden on desktop */
+        .ygp-matrix-cards { display: none; }
+
+        .ygp-matrix-card {
+          background: white;
+          border-radius: 16px;
+          padding: 1.25rem;
+          margin-bottom: 0.75rem;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .ygp-matrix-card-rank {
+          flex-shrink: 0;
+        }
+
+        .ygp-matrix-card-info {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .ygp-matrix-card-name {
+          font-weight: 700;
+          color: #1e293b;
+          font-size: 0.95rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .ygp-matrix-card-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 0.8rem;
+          color: #64748b;
+          padding: 0.2rem 0;
+        }
+
+        .ygp-matrix-card-row .ygp-stars {
+          font-size: 0.85rem;
+          justify-content: flex-end;
+        }
 
         .ygp-priority-badge {
           display: inline-flex;
@@ -737,11 +788,9 @@ export function YCIHGabonProjects() {
 
           .ygp-matrix-section { padding: 1.5rem 1rem; border-radius: 16px; margin: 2rem 0; }
           .ygp-matrix-section h2 { font-size: 1.25rem; }
-          .ygp-matrix-table { font-size: 0.75rem; }
-          .ygp-matrix-table th { padding: 0.6rem 0.35rem; font-size: 0.7rem; }
-          .ygp-matrix-table td { padding: 0.6rem 0.35rem; }
-          .ygp-stars { font-size: 0.9rem; gap: 0.1rem; }
-          .ygp-priority-badge { width: 24px; height: 24px; font-size: 0.7rem; }
+          .ygp-matrix-scroll { display: none; }
+          .ygp-matrix-cards { display: block; }
+          .ygp-priority-badge { width: 28px; height: 28px; font-size: 0.75rem; }
 
           .ygp-package-section { padding: 2rem 1.25rem; border-radius: 16px; margin: 2rem 0; }
           .ygp-package-grid { grid-template-columns: 1fr; gap: 1rem; }
@@ -1058,25 +1107,52 @@ export function YCIHGabonProjects() {
               <h2>Matrice de Priorisation</h2>
               <p>Evaluation comparative des projets selon trois criteres cles</p>
             </div>
-            <table className="ygp-matrix-table">
-              <thead>
-                <tr>
-                  <th>Projet</th>
-                  <th>Competence YCIH</th>
-                  <th>Soutien Etatique</th>
-                  <th>Rentabilite</th>
-                  <th>Priorite</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td>Energie (hydro + gaz)</td><td><div className="ygp-stars">★★★★★</div></td><td><div className="ygp-stars">★★★★★</div></td><td><div className="ygp-stars">★★★★★</div></td><td><span className="ygp-priority-badge high">1</span></td></tr>
-                <tr><td>ZES Nyanga (mines)</td><td><div className="ygp-stars">★★★★★</div></td><td><div className="ygp-stars">★★★★★</div></td><td><div className="ygp-stars">★★★★<span className="ygp-star-empty">★</span></div></td><td><span className="ygp-priority-badge high">2</span></td></tr>
-                <tr><td>Logements residentiels</td><td><div className="ygp-stars">★★★★<span className="ygp-star-empty">★</span></div></td><td><div className="ygp-stars">★★★★★</div></td><td><div className="ygp-stars">★★★★<span className="ygp-star-empty">★</span></div></td><td><span className="ygp-priority-badge medium">3</span></td></tr>
-                <tr><td>Transgabonaise (route)</td><td><div className="ygp-stars">★★★★★</div></td><td><div className="ygp-stars">★★★★★</div></td><td><div className="ygp-stars">★★★★★</div></td><td><span className="ygp-priority-badge medium">4</span></td></tr>
-                <tr><td>Ferroviaire</td><td><div className="ygp-stars">★★★★<span className="ygp-star-empty">★</span></div></td><td><div className="ygp-stars">★★★<span className="ygp-star-empty">★★</span></div></td><td><div className="ygp-stars">★★★<span className="ygp-star-empty">★★</span></div></td><td><span className="ygp-priority-badge low">5</span></td></tr>
-                <tr><td>Baie des Rois</td><td><div className="ygp-stars">★★★★<span className="ygp-star-empty">★</span></div></td><td><div className="ygp-stars">★★★<span className="ygp-star-empty">★★</span></div></td><td><div className="ygp-stars">★★★<span className="ygp-star-empty">★★</span></div></td><td><span className="ygp-priority-badge low">6</span></td></tr>
-              </tbody>
-            </table>
+            {/* Desktop table */}
+            <div className="ygp-matrix-scroll">
+              <table className="ygp-matrix-table">
+                <thead>
+                  <tr>
+                    <th>Projet</th>
+                    <th>Competence YCIH</th>
+                    <th>Soutien Etatique</th>
+                    <th>Rentabilite</th>
+                    <th>Priorite</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Energie (hydro + gaz)</td><td><div className="ygp-stars">★★★★★</div></td><td><div className="ygp-stars">★★★★★</div></td><td><div className="ygp-stars">★★★★★</div></td><td><span className="ygp-priority-badge high">1</span></td></tr>
+                  <tr><td>ZES Nyanga (mines)</td><td><div className="ygp-stars">★★★★★</div></td><td><div className="ygp-stars">★★★★★</div></td><td><div className="ygp-stars">★★★★<span className="ygp-star-empty">★</span></div></td><td><span className="ygp-priority-badge high">2</span></td></tr>
+                  <tr><td>Logements residentiels</td><td><div className="ygp-stars">★★★★<span className="ygp-star-empty">★</span></div></td><td><div className="ygp-stars">★★★★★</div></td><td><div className="ygp-stars">★★★★<span className="ygp-star-empty">★</span></div></td><td><span className="ygp-priority-badge medium">3</span></td></tr>
+                  <tr><td>Transgabonaise (route)</td><td><div className="ygp-stars">★★★★★</div></td><td><div className="ygp-stars">★★★★★</div></td><td><div className="ygp-stars">★★★★★</div></td><td><span className="ygp-priority-badge medium">4</span></td></tr>
+                  <tr><td>Ferroviaire</td><td><div className="ygp-stars">★★★★<span className="ygp-star-empty">★</span></div></td><td><div className="ygp-stars">★★★<span className="ygp-star-empty">★★</span></div></td><td><div className="ygp-stars">★★★<span className="ygp-star-empty">★★</span></div></td><td><span className="ygp-priority-badge low">5</span></td></tr>
+                  <tr><td>Baie des Rois</td><td><div className="ygp-stars">★★★★<span className="ygp-star-empty">★</span></div></td><td><div className="ygp-stars">★★★<span className="ygp-star-empty">★★</span></div></td><td><div className="ygp-stars">★★★<span className="ygp-star-empty">★★</span></div></td><td><span className="ygp-priority-badge low">6</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="ygp-matrix-cards">
+              {[
+                { name: 'Energie (hydro + gaz)', comp: '★★★★★', soutien: '★★★★★', rent: '★★★★★', p: 1, cls: 'high' },
+                { name: 'ZES Nyanga (mines)', comp: '★★★★★', soutien: '★★★★★', rent: '★★★★☆', p: 2, cls: 'high' },
+                { name: 'Logements residentiels', comp: '★★★★☆', soutien: '★★★★★', rent: '★★★★☆', p: 3, cls: 'medium' },
+                { name: 'Transgabonaise (route)', comp: '★★★★★', soutien: '★★★★★', rent: '★★★★★', p: 4, cls: 'medium' },
+                { name: 'Ferroviaire', comp: '★★★★☆', soutien: '★★★☆☆', rent: '★★★☆☆', p: 5, cls: 'low' },
+                { name: 'Baie des Rois', comp: '★★★★☆', soutien: '★★★☆☆', rent: '★★★☆☆', p: 6, cls: 'low' },
+              ].map((item) => (
+                <div className="ygp-matrix-card" key={item.p}>
+                  <div className="ygp-matrix-card-rank">
+                    <span className={`ygp-priority-badge ${item.cls}`}>{item.p}</span>
+                  </div>
+                  <div className="ygp-matrix-card-info">
+                    <div className="ygp-matrix-card-name">{item.name}</div>
+                    <div className="ygp-matrix-card-row"><span>Competence</span><span className="ygp-stars">{item.comp}</span></div>
+                    <div className="ygp-matrix-card-row"><span>Soutien</span><span className="ygp-stars">{item.soutien}</span></div>
+                    <div className="ygp-matrix-card-row"><span>Rentabilite</span><span className="ygp-stars">{item.rent}</span></div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Package Section */}
