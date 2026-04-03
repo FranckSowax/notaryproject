@@ -63,7 +63,7 @@ export function YCIHGabonEnergieZH() {
           backdrop-filter:blur(20px);
           border-bottom:1px solid rgba(255,255,255,0.07);
         }
-        .yge-logo { color:#D4A935; font-family:'Noto Serif SC',serif; font-size:1.05rem; letter-spacing:.06em; }
+        .yge-logo { color:#D4A935; font-family:'Noto Serif SC',serif; font-size:1.05rem; letter-spacing:.06em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
         .yge-logo span { color:rgba(232,226,214,0.45); font-size:.85rem; font-family:'DM Sans',sans-serif; letter-spacing:.1em; }
         .yge-lang-btns { display:flex; gap:8px; }
         .yge-lang-btn {
@@ -306,8 +306,12 @@ export function YCIHGabonEnergieZH() {
         .yge-proj-card-row span:last-child { color:#E8E2D6; }
 
         @media(max-width:768px) {
-          .yge-header { padding:14px 20px; }
-          .yge-hero, .yge-section { padding:70px 24px; }
+          .yge-header { padding:12px 16px; }
+          .yge-logo { font-size:.85rem; }
+          .yge-logo span { display:none; }
+          .yge-lang-btn { padding:5px 12px; font-size:.65rem; }
+          .yge-hero { padding:90px 24px 60px; }
+          .yge-section { padding:60px 24px; }
           .yge-footer { padding:40px 24px; flex-direction:column; text-align:center; }
           .yge-ft-info { text-align:center; }
           .yge-shock-grid, .yge-cards-grid, .yge-pitch-grid { grid-template-columns:1fr; }
