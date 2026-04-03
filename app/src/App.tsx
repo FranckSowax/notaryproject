@@ -25,6 +25,8 @@ import { YCIHLanding } from '@/pages/landing/YCIHLanding';
 import { YCIHLandingZH } from '@/pages/landing/YCIHLandingZH';
 import { YCIHGabonProjects } from '@/pages/landing/YCIHGabonProjects';
 import { YCIHGabonProjectsZH } from '@/pages/landing/YCIHGabonProjectsZH';
+import { YCIHGabonEnergie } from '@/pages/landing/YCIHGabonEnergie';
+import { YCIHGabonEnergieZH } from '@/pages/landing/YCIHGabonEnergieZH';
 import { BookingPage } from '@/pages/public/BookingPage';
 import { CABINET_DEFAULT } from '@/lib/cabinetDefaults';
 
@@ -64,6 +66,8 @@ function App() {
           <Route path="/ycih/zh" element={<YCIHLandingZH />} />
           <Route path="/ycih/gabon" element={<YCIHGabonProjects />} />
           <Route path="/ycih/gabon/zh" element={<YCIHGabonProjectsZH />} />
+          <Route path="/ycih/gabon/energie" element={<YCIHGabonEnergie />} />
+          <Route path="/ycih/gabon/energie/zh" element={<YCIHGabonEnergieZH />} />
           <Route path="/rdv/:token" element={<BookingPage />} />
 
           {/* Auth */}
